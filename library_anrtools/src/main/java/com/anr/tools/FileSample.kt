@@ -13,12 +13,6 @@ import java.util.*
 import kotlin.jvm.Synchronized
 
 
-/**
- * Copyright (c) 2021, 唐小陆 All rights reserved.
- * author：txl
- * date：2021/10/23
- * description：
- */
 class FileSample private constructor() : IAnrSamplerListener {
     private var anrInfo: AnrInfo = AnrInfo()
     override fun onMessageQueueSample(baseTime: Long, msgId: String, msg: String) {

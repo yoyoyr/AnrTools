@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">library_anrtools</string>
+    <string name="block_moon_light_treasure_box">月光宝盒</string>
+    <string name="log_analyze">日志分析</string>
 </resources>

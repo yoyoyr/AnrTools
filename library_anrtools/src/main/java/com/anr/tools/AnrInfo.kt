@@ -12,7 +12,7 @@ class AnrInfo : Serializable {
     var scheduledSamplerCache: TimeLruCache<ScheduledInfo> = TimeLruCache()
     var messageQueueSample = StringBuilder()
     var mainThreadStack: String? = null
-    var markTime: String? = null
+    var markTime: String = ""
 
     companion object {
         private const val serialVersionUID = 1L
