@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.2833333333333333" />
         <entry key="library_anrtools/src/main/res/drawable/icon_item_scheduling_bg.xml" value="0.1" />
         <entry key="library_anrtools/src/main/res/drawable/icon_msg_activity_thread_h_bg.xml" value="0.1" />
         <entry key="library_anrtools/src/main/res/drawable/icon_msg_anr_bg.xml" value="0.1" />
