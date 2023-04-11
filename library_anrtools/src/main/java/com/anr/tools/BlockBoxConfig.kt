@@ -1,38 +1,53 @@
 package com.anr.tools
 
-import java.util.*
-
 
 class BlockBoxConfig private constructor() {
     /**
      * 超过这个时间输出警告 超过这个时间消息单独罗列出来
      * 合并消息包的阈值。例如16个消息耗时达到300ms，则打包成一个消息包。因为有很多的短消息
      */
-    var warnTime: Long = 300
-        private set
-
-    private val anrSamplerListeners = ArrayList<IAnrSamplerListener>()
+    private var warnTime: Long = 300
 
     //这个值暂定50ms
-    var gapTime: Long = 50
-        private set
+    private var gapTime: Long = 50
 
     /**
      * 超过这个时间可直接判定为anr
      */
-    var anrTime: Long = 3000
-        private set
+    private var anrTime: Long = 3000
 
     /**
      * 三大流程掉帧数 超过这个值判定为jank
      */
-    var jankFrame = 30
-        private set
-    var isUseAnalyze = true
-        private set
+    private var jankFrame = 30
+
+    private var useAnalyze = true
+
+    fun isUseAnalyze(): Boolean {
+        return useAnalyze
+    }
+
+    fun getWarnTime(): Long {
+        return warnTime
+    }
+
+    fun getGapTime(): Long {
+        return gapTime
+    }
+
+    fun getAnrTime(): Long {
+        return anrTime
+    }
+
+    fun getJankFrame(): Int {
+        return jankFrame
+    }
+
+    private fun BlockBoxConfig() {}
+
 
     class Builder {
-        private val config: BlockBoxConfig = BlockBoxConfig()
+        private val config: BlockBoxConfig
         fun setWarnTime(warnTime: Long): Builder {
             config.warnTime = warnTime
             return this
@@ -52,8 +67,9 @@ class BlockBoxConfig private constructor() {
             config.jankFrame = jankFrme
             return this
         }
+
         fun useAnalyze(useAnalyze: Boolean): Builder {
-            config.isUseAnalyze = useAnalyze
+            config.useAnalyze = useAnalyze
             return this
         }
 
@@ -62,8 +78,7 @@ class BlockBoxConfig private constructor() {
         }
 
         init {
-            val fileSample: FileSample = FileSample.instance
-            config.anrSamplerListeners.add(fileSample)
+            config = BlockBoxConfig()
         }
     }
 

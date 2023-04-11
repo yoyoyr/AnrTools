@@ -5,10 +5,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import com.anr.tools.AppExecutors
+import com.anr.tools.FileSample
 
 
 object DisplayUtils {
     fun showAnalyzeActivityInLauncher(context: Context, show: Boolean) {
+        FileSample.getInstance().saveMessage()
         val component = ComponentName(context, DisplayActivity::class.java)
         val packageManager = context.packageManager
         val newState =

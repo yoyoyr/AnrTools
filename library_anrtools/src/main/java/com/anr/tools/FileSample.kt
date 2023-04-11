@@ -26,22 +26,7 @@ class FileSample private constructor() : IAnrSamplerListener {
     }
 
     override fun onSampleAnrMsg() {
-        synchronized(this) {
-            val temp: AnrInfo = anrInfo
-            val path = FileCache.sFormat.format(Date())
-            if (TextUtils.isEmpty(temp.markTime)) {
-                temp.markTime = path
-            }
-            AppExecutors.getInstance().diskIO().execute(Runnable {
-                Log.d(
-                    TAG,
-                    "cacheData schedule size " + temp.scheduledSamplerCache.getAll().size
-                        .toString() + "  file name : " + temp.markTime
-                )
-                fileCache.cacheData(temp.markTime, temp)
-                //通知可以展示ui
-            })
-        }
+
     }
 
     override fun onScheduledSample(start: Boolean, baseTime: Long, msgId: String, dealt: Long) {
@@ -60,6 +45,24 @@ class FileSample private constructor() : IAnrSamplerListener {
             }
             anrInfo.messageSamplerCache.put(baseTime, msg)
         }
+    }
+
+    @Synchronized
+    fun saveMessage() {
+        val temp: AnrInfo = anrInfo
+        val path = FileCache.sFormat.format(Date())
+        if (TextUtils.isEmpty(temp.markTime)) {
+            temp.markTime = path
+        }
+        AppExecutors.getInstance().diskIO().execute(Runnable {
+            Log.d(
+                TAG,
+                "cacheData schedule size " + temp.scheduledSamplerCache.getAll().size
+                    .toString() + "  file name : " + temp.markTime
+            )
+            fileCache.cacheData(temp.markTime, temp)
+            //通知可以展示ui
+        })
     }
 
 
@@ -208,7 +211,8 @@ class FileSample private constructor() : IAnrSamplerListener {
     companion object {
         private val TAG: String = "FileSample"
         val fileCache: FileCache<AnrInfo> = FileCache<AnrInfo>()
-        val instance = FileSample()
+        private val fileSample = FileSample()
+        fun getInstance() = fileSample
     }
 
     init {

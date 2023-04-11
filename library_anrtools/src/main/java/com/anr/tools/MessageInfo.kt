@@ -36,7 +36,7 @@ class MessageInfo : Serializable {
      * cpu 时间是函数正真执行时间
      */
     var cpuTime: Long = 0
-    var boxMessages: List<BoxMessage> = ArrayList()
+    var boxMessages = mutableListOf<BoxMessage>()
 
     /**
      * 消息被创建的时间
