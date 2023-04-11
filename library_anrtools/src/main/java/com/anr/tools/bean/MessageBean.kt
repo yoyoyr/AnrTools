@@ -1,32 +1,33 @@
-package com.anr.tools
+package com.anr.tools.bean
 
 import java.io.Serializable
 
 
 /**
- * 分发的Message  相关信息
+ * 单个Message信息
  */
-class BoxMessage : Serializable {
-    var handleName: String? = null
+class MessageBean : Serializable {
+    lateinit var handleName: String
         private set
 
     /**
      * 内存地址
      */
-    var handlerAddress: String? = null
+    lateinit var handlerAddress: String
         private set
-    var callbackName: String? = null
+    lateinit var callbackName: String
         private set
     var messageWhat = 0
         private set
     var msgId: Long = 0
 
-    constructor() {}
+    constructor()
+
     constructor(
-        handleName: String?,
-        callbackName: String?,
+        handleName: String,
+        callbackName: String,
         messageWhat: Int,
-        handlerAddress: String?
+        handlerAddress: String
     ) {
         this.handleName = handleName
         this.callbackName = callbackName
@@ -35,7 +36,7 @@ class BoxMessage : Serializable {
     }
 
     override fun toString(): String {
-        return "BoxMessage{" +
+        return "MessageBean{" +
                 "handleName='" + handleName + '\'' +
                 ", handlerAddress='" + handlerAddress + '\'' +
                 ", callbackName='" + callbackName + '\'' +
@@ -45,7 +46,6 @@ class BoxMessage : Serializable {
     }
 
     companion object {
-        const val SEPARATOR = "\r\n"
         private const val serialVersionUID = 1L
     }
 }

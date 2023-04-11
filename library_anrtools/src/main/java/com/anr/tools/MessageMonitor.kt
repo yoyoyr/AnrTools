@@ -1,91 +1,103 @@
 package com.anr.tools
 
-import android.content.Context
-import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
 import android.util.Printer
-import com.anr.tools.ui.DisplayUtils
+import com.anr.tools.bean.MessageBean
+import com.anr.tools.bean.PolMessageBean
+import com.anr.tools.util.FileUtil
+import com.anr.tools.util.LoggerUtils
 import java.util.concurrent.atomic.AtomicBoolean
 
 open class MessageMonitor private constructor() : Printer {
-    private val TAG: String = "MessageMonitor"
 
     @Volatile
     private var start = false
 
-    /**
-     * 每一帧的时间
-     */
-    private val noInit: Long = -1
-    private var startTime = noInit
-    private var msgStartTime: Long = noInit
-    private var lastMsgEnd: Long = noInit
-    private var cpuStartTime = noInit
-    private var lastCpuEnd: Long = noInit
+    //每一帧的时间
+    private val noInit = -1L
 
-    /**
-     * 超过这个时间 就发生anr
-     */
-    private var monitorAnrTime = noInit
+    //聚合消息的开始时间
+    private var polMessageStartTime = noInit
 
-    /**
-     * 超过这个时间 就发生anr
-     */
-    private var monitorMsgId: Long = 0
+    //单挑消息的开始时间
+    private var messageStartTime = noInit
 
+    //记录单条消息的cpu时间片开始时间
+    private var messageCpuStartTime = noInit
 
-    /**
-     * 每次消息处理完成后需要置空
-     */
-    private var messageInfo: MessageInfo? = null
-    private lateinit var currentMsg: BoxMessage
+    //上一条消息的结束时间
+    private var lastMessageEndTime = noInit
 
-    private lateinit var config: BlockBoxConfig
+    //上一条消息的cpu时间片结束时间
+    private var lastMessageCpuEndTime = noInit
 
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private var checkId: Long = -1
+    //监控开始到目前，记录的消息个数
+    private var monitorMessageCount = 0L
+
+    private var polMessage: PolMessageBean? = null
+
+    private lateinit var currentMessage: MessageBean
 
     //调用println 是奇数次还是偶数  默认false 偶数  true 奇数
-    private val odd = AtomicBoolean(false)
+    private val printCountFlg = AtomicBoolean(false)
 
     override fun println(x: String) {
-        if (x.contains("<<<<< Finished to") && !odd.get()) {
+        if (x.contains("<<<<< Finished to") && !printCountFlg.get()) {
             return
         }
         //原来是偶数次，那么这次进来就是奇数
-        if (!odd.get()) {
+        if (!printCountFlg.get()) {
             msgStart(x)
         } else {
             msgEnd()
         }
-        odd.set(!odd.get())
+        printCountFlg.set(!printCountFlg.get())
+    }
+
+    fun startMonitor() {
+        if (start) {
+            LoggerUtils.LOGW("already start")
+        }
+        start = true
+        Looper.getMainLooper().setMessageLogging(this)
+    }
+
+    /**
+     * 停止监控
+     */
+    fun stopMonitor() {
+        Looper.getMainLooper().setMessageLogging(null)
+        start = false
+        monitorMessageCount = 0L
+    }
+
+    fun saveMessage(){
+        FileUtil.getInstance().saveMessage()
     }
 
     private fun msgStart(msg: String) {
-        msgStartTime = SystemClock.elapsedRealtime()
-        monitorAnrTime = msgStartTime + config.getAnrTime()
-        currentMsg = BoxMessageUtils.parseLooperStart(msg)
-        currentMsg.msgId = monitorMsgId
-        cpuStartTime = SystemClock.currentThreadTimeMillis()
+        messageStartTime = SystemClock.elapsedRealtime()
+        currentMessage = msg.parseLooperStart()
+        currentMessage.msgId = monitorMessageCount
+        messageCpuStartTime = SystemClock.currentThreadTimeMillis()
         //两次消息的时间间隔较大，如前一条消息处理完了以后等待了300ms才来下一条消息
         //单独处理消息且增加一个gap消息 不应该存在两个连续的gap消息
-        if (msgStartTime - lastMsgEnd > config.getGapTime() && lastMsgEnd != noInit) {
+        if (messageStartTime - lastMessageEndTime > gapTime && lastMessageEndTime != noInit) {
             handleMsg()
-            messageInfo = MessageInfo().apply {
-                msgType = MessageInfo.MSG_TYPE_GAP
-                wallTime = msgStartTime - lastMsgEnd
-                cpuTime = cpuStartTime - lastCpuEnd
+            polMessage = PolMessageBean().apply {
+                msgType = PolMessageBean.MSG_TYPE_GAP
+                wallTime = messageStartTime - lastMessageEndTime
+                cpuTime = messageCpuStartTime - lastMessageCpuEndTime
             }
 
-            startTime = msgStartTime
+            polMessageStartTime = messageStartTime
         }
-        if (messageInfo == null) {
-            messageInfo = MessageInfo()
-            startTime = SystemClock.elapsedRealtime()
-            msgStartTime = startTime
-            cpuStartTime = SystemClock.currentThreadTimeMillis()
+        if (polMessage == null) {
+            polMessage = PolMessageBean()
+            polMessageStartTime = SystemClock.elapsedRealtime()
+            messageStartTime = polMessageStartTime
+            messageCpuStartTime = SystemClock.currentThreadTimeMillis()
         }
     }
 
@@ -98,103 +110,78 @@ open class MessageMonitor private constructor() : Printer {
      */
     private fun msgEnd() {
         synchronized(MessageMonitor::class.java) {
-            lastMsgEnd = SystemClock.elapsedRealtime()
-            lastCpuEnd = SystemClock.currentThreadTimeMillis()
-            val msgDealtTime: Long = lastMsgEnd - msgStartTime
+            lastMessageEndTime = SystemClock.elapsedRealtime()
+            lastMessageCpuEndTime = SystemClock.currentThreadTimeMillis()
+            val msgDealtTime: Long = lastMessageEndTime - messageStartTime
             //判断是否是ActivityThread.H的消息
-            val msgActivityThread: Boolean = BoxMessageUtils.isBoxMessageActivityThread(currentMsg)
-            if (msgDealtTime > config.getWarnTime() //单条消息时间达到警告条件的
+            val msgActivityThread = currentMessage.isBoxMessageActivityThread()
+            if (msgDealtTime > warnTime //单条消息时间达到警告条件的
                 || msgActivityThread
             ) { //ActivityThread的消息
-                if (messageInfo!!.count > 1) { //先处理原来的信息包
-                    messageInfo!!.msgType = MessageInfo.MSG_TYPE_INFO
-                    handleMsg()
+                polMessage?.run {
+                    if (count > 1) { //先处理原来的信息包
+                        msgType = PolMessageBean.MSG_TYPE_INFO
+                        handleMsg()
+                    }
                 }
-                messageInfo = MessageInfo().apply {
-                    wallTime = lastMsgEnd - msgStartTime
-                    cpuTime = lastCpuEnd - cpuStartTime
-                    boxMessages.add(currentMsg)
-                    msgType = MessageInfo.MSG_TYPE_WARN
-                    if (msgDealtTime > config.getAnrTime()) {
-                        msgType = MessageInfo.MSG_TYPE_ANR
+
+                polMessage = PolMessageBean().apply {
+                    wallTime = lastMessageEndTime - messageStartTime
+                    cpuTime = lastMessageCpuEndTime - messageCpuStartTime
+                    boxMessages.add(currentMessage)
+                    msgType = PolMessageBean.MSG_TYPE_WARN
+                    if (msgDealtTime > anrTime) {
+                        msgType = PolMessageBean.MSG_TYPE_ANR
                     } else if (msgActivityThread) {
-                        msgType = MessageInfo.MSG_TYPE_ACTIVITY_THREAD_H
+                        msgType = PolMessageBean.MSG_TYPE_ACTIVITY_THREAD_H
                     }
                 }
 
                 handleMsg()
             } else {
                 //统计每一次消息分发耗时 他们的叠加就是总耗时
-                messageInfo?.run {
-                    wallTime += lastMsgEnd - startTime
+                polMessage?.run {
+                    wallTime += lastMessageEndTime - polMessageStartTime
                     //生成消息的时候，当前线程总的执行时间
-                    cpuTime += lastCpuEnd - cpuStartTime
-                    boxMessages.add(currentMsg)
+                    cpuTime += lastMessageCpuEndTime - messageCpuStartTime
+                    boxMessages.add(currentMessage)
                     count++
-                    if (wallTime > config.getWarnTime()) {
+                    if (wallTime > warnTime) {
                         handleMsg()
                     }
                 }
             }
-            monitorMsgId++
+            monitorMessageCount++
         }
-    }
-
-
-    @Synchronized
-    fun startMonitor() {
-        if (start) {
-            LoggerUtils.LOGW("already start")
-        }
-        start = true
-        Looper.getMainLooper().setMessageLogging(this)
-    }
-
-    /**
-     * 停止监控
-     */
-    @Synchronized
-    fun stopMonitor(): MessageMonitor {
-        Looper.getMainLooper().setMessageLogging(null)
-        mainHandler.removeCallbacksAndMessages(null)
-        start = false
-        checkId = -1
-        return this
     }
 
     //保存msg信息
     private fun handleMsg() {
-        if (messageInfo != null) {
-            val temp = messageInfo!!
-            messageInfo = null
+        polMessage?.run {
             var msgId = 0L
-            if (temp.boxMessages.size !== 0) {
-                msgId = temp.boxMessages[0].msgId
+            if (boxMessages.isNotEmpty()) {
+                msgId = boxMessages[0].msgId
             }
 
             LoggerUtils.LOGV(
-                "add msg wallTime other wallTime : " + temp.wallTime + "  cpuTime " + temp.cpuTime + "   MSG_TYPE : " + MessageInfo.msgTypeToString(
-                    temp.msgType
+                "add msg wallTime other wallTime : $wallTime  cpuTime $cpuTime   MSG_TYPE : " + PolMessageBean.msgTypeToString(
+                    msgType
                 ) + "  msgId " + msgId
             )
 
-            FileSample.getInstance().onMsgSample(
+            FileUtil.getInstance().onMsgSample(
                 SystemClock.elapsedRealtimeNanos(),
-                monitorMsgId.toString() + "",
-                temp
+                monitorMessageCount.toString(),
+                this
             )
+            polMessage = null
         }
     }
+
 
     companion object {
-        fun getInstance(config: BlockBoxConfig) = MessageMonitor().apply {
-            this.config = config
-            DisplayUtils.showAnalyzeActivityInLauncher(
-                BaseApplication.context,
-                config.isUseAnalyze()
-            )
-        }
+        private val messageMonitor = MessageMonitor()
 
+        fun getInstance() = messageMonitor
     }
-
 }

@@ -14,11 +14,11 @@
             android:label="@string/log_analyze" />
 
         <activity
-            android:name=".ui.DisplayActivity"
+            android:name=".ui.PolMessageListActivity"
             android:enabled="true"
             android:exported="true"
-            android:icon="@mipmap/icon_block"
-            android:label="@string/block_moon_light_treasure_box"
+            android:icon="@mipmap/ic_launcher"
+            android:label="聚合消息"
             android:taskAffinity="com.txl.blockmoonlighttreasurebox">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

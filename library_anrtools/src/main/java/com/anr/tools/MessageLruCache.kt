@@ -3,14 +3,7 @@ package com.anr.tools
 import android.os.SystemClock
 import java.io.Serializable
 
-
-/**
- * Copyright (c) 2021, 唐小陆 All rights reserved.
- * author：txl
- * date：2021/10/23
- * description：依据时间作为偏差，存储指定时间范围内的节点
- */
-class TimeLruCache<V> : Serializable {
+class MessageLruCache<V> : Serializable {
     /**
      * 默认30s  单位是ms
      */
@@ -39,7 +32,7 @@ class TimeLruCache<V> : Serializable {
     }
 
     fun put(baseTime: Long, value: V) {
-        linkedHashMap.put(baseTime, value)
+        linkedHashMap[baseTime] = value
         lastPutTime = baseTime
         lastValue = value
     }

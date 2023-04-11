@@ -5,13 +5,9 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.widget.Button
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.anr.tools.LoggerUtils
-import com.anr.tools.ui.DisplayUtils
-import com.hjq.permissions.OnPermissionCallback
-import com.hjq.permissions.Permission
-import com.hjq.permissions.XXPermissions
+import com.anr.tools.MessageMonitor
+import com.anr.tools.util.LoggerUtils
 
 class MainActivity : AppCompatActivity() {
 
@@ -62,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.saveMsg).setOnClickListener {
-            DisplayUtils.showAnalyzeActivityInLauncher(it.context, true)
+             MessageMonitor.getInstance().saveMessage()
         }
     }
 }

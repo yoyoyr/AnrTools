@@ -5,9 +5,9 @@ import android.app.Activity
 import android.os.Bundle
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.anr.tools.MessageInfo
+import com.anr.tools.ANR_INFO
+import com.anr.tools.bean.PolMessageBean
 import com.anr.tools.R
-import com.anr.tools.ui.AnalyzeProtocol
 
 
 /**
@@ -27,16 +27,16 @@ class AnalyzeActivity : Activity() {
         recyclerMainThreadScheduling.adapter = analyzeSchedulingAdapter
         val recyclerViewMessageQueue: RecyclerView = findViewById(R.id.recyclerViewMessageQueue)
         val analyzeMessageDispatchAdapter = AnalyzeMessageDispatchAdapter()
-        recyclerViewMessageQueue.setAdapter(analyzeMessageDispatchAdapter)
+        recyclerViewMessageQueue.adapter = analyzeMessageDispatchAdapter
         val tvNameMessageQueueDispatchItemInfo =
             findViewById<TextView>(R.id.tvNameMessageQueueDispatchItemInfo)
         val tvNameMessageQueueInfo = findViewById<TextView>(R.id.tvNameMessageQueueInfo)
         val tvNameMainThreadStackInfo = findViewById<TextView>(R.id.tvNameMainThreadStackInfo)
-        val anrInfo = AnalyzeProtocol.anrInfo
+        val anrInfo = ANR_INFO
         analyzeMessageDispatchAdapter.setOnItemClickListener(object : AnalyzeMessageDispatchAdapter.OnItemClickListener {
 
-            override fun onItemClick(messageInfo: MessageInfo?) {
-                tvNameMessageQueueDispatchItemInfo.setText(messageInfo.toString())
+            override fun onItemClick(messageInfo: PolMessageBean?) {
+                tvNameMessageQueueDispatchItemInfo.text = messageInfo.toString()
             }
 
         })

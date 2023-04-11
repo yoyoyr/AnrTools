@@ -1,12 +1,11 @@
-package com.anr.tools
+package com.anr.tools.bean
 
 import android.os.SystemClock
 import androidx.annotation.IntDef
 import java.io.Serializable
-import java.util.*
 
-
-class MessageInfo : Serializable {
+//聚合消息类
+class PolMessageBean : Serializable {
     @IntDef(
         MSG_TYPE_NONE,
         MSG_TYPE_INFO,
@@ -36,12 +35,13 @@ class MessageInfo : Serializable {
      * cpu 时间是函数正真执行时间
      */
     var cpuTime: Long = 0
-    var boxMessages = mutableListOf<BoxMessage>()
+    var boxMessages = mutableListOf<MessageBean>()
 
     /**
      * 消息被创建的时间
      */
     var messageCreateTime = SystemClock.elapsedRealtime()
+
     override fun toString(): String {
         return "MessageInfo{" +
                 "msgType=" + msgTypeToString(msgType) +

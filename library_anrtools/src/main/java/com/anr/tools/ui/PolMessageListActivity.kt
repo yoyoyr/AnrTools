@@ -11,16 +11,17 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.anr.tools.AnrInfo
-import com.anr.tools.AppExecutors
-import com.anr.tools.FileSample
+import com.anr.tools.ANR_INFO
+import com.anr.tools.bean.InfoBean
+import com.anr.tools.util.FileUtil
+import com.anr.tools.IO_EXECUTOR
 import com.anr.tools.R
 import com.anr.tools.ui.analyze.AnalyzeActivity
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-class DisplayActivity : Activity() {
+class PolMessageListActivity : Activity() {
     private val refresh = AtomicBoolean(false)
     private val adapter = FileAdapter()
     var swipeRefreshLayout: SwipeRefreshLayout? = null
@@ -43,21 +44,22 @@ class DisplayActivity : Activity() {
             return
         }
         refresh.set(true)
-        AppExecutors.getInstance().networkIO().execute(Runnable {
+        IO_EXECUTOR.execute {
             refresh.set(false)
-            val anrInfoList: List<AnrInfo> = FileSample.fileCache.restoreData()
-            Collections.sort(anrInfoList
+            val anrInfoList: List<InfoBean> = FileUtil.getInstance().restoreData()
+            Collections.sort(
+                anrInfoList
             ) { o1, o2 -> o2.markTime.compareTo(o1.markTime) }
             adapter.anrInfoList = anrInfoList
             runOnUiThread {
-                swipeRefreshLayout?.setRefreshing(false)
+                swipeRefreshLayout?.isRefreshing = false
                 adapter.notifyDataSetChanged()
             }
-        })
+        }
     }
 
-    private class FileAdapter :RecyclerView.Adapter<FileViewHolder?>() {
-        var anrInfoList: List<AnrInfo>? = null
+    private class FileAdapter : RecyclerView.Adapter<FileViewHolder?>() {
+        var anrInfoList: List<InfoBean>? = null
 
         override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): FileViewHolder {
             return FileViewHolder(
@@ -66,19 +68,22 @@ class DisplayActivity : Activity() {
         }
 
         override fun onBindViewHolder(fileViewHolder: FileViewHolder, i: Int) {
-            fileViewHolder.itemView.setOnClickListener {
-                AnalyzeProtocol.anrInfo = anrInfoList!![i]
-                val context: Context = fileViewHolder.itemView.context
-                context.startActivity(Intent(context, AnalyzeActivity::class.java))
+            anrInfoList?.get(i)?.let { anrInfo ->
+                fileViewHolder.itemView.setOnClickListener {
+                    ANR_INFO = anrInfo
+                    val context: Context = fileViewHolder.itemView.context
+                    context.startActivity(Intent(context, AnalyzeActivity::class.java))
+                }
+                fileViewHolder.textView.text = anrInfo.markTime
             }
-            fileViewHolder.textView.text = anrInfoList!![i].markTime
+
         }
 
 
-        override fun getItemCount(): Int  =  if (anrInfoList == null) 0 else anrInfoList!!.size
+        override fun getItemCount(): Int = if (anrInfoList == null) 0 else anrInfoList!!.size
     }
 
-    private class FileViewHolder(itemView: View) :RecyclerView.ViewHolder(itemView) {
+    private class FileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textView: TextView = itemView.findViewById(R.id.tvFileName)
 
     }

@@ -3,7 +3,7 @@ package com.anr.tools.ui.analyze
 
 import android.view.View
 import android.widget.TextView
-import com.anr.tools.MessageInfo
+import com.anr.tools.bean.PolMessageBean
 import com.anr.tools.R
 
 
@@ -14,7 +14,7 @@ class AnalyzeMessageQueueDispatchViewHolder(itemView: View) :
     private val tvWallTime: TextView = itemView.findViewById(R.id.tvWallTime)
     private val tvCpuTime: TextView = itemView.findViewById(R.id.tvCpuTime)
     private val tvMsgCount: TextView = itemView.findViewById(R.id.tvMsgCount)
-    fun parse(messageInfo: MessageInfo) {
+    fun parse(messageInfo: PolMessageBean) {
         itemView.setBackgroundResource(getItemBg(messageInfo))
         tvMsgId.text = "msgId: "
         if (messageInfo.boxMessages != null && messageInfo.boxMessages.size !== 0) {
@@ -24,18 +24,18 @@ class AnalyzeMessageQueueDispatchViewHolder(itemView: View) :
                 tvMsgId.text = "msgId: "
             }
         }
-        tvMsgType.text = "消息类型：" + MessageInfo.msgTypeToString(messageInfo.msgType)
+        tvMsgType.text = "消息类型：" + PolMessageBean.msgTypeToString(messageInfo.msgType)
         tvWallTime.text = "wall: " + messageInfo.wallTime
         tvCpuTime.text = "cpu: " + messageInfo.cpuTime
         tvMsgCount.text = "msgCount: " + messageInfo.count
     }
 
-    private fun getItemBg(messageInfo: MessageInfo): Int {
+    private fun getItemBg(messageInfo: PolMessageBean): Int {
         when (messageInfo.msgType) {
-            MessageInfo.MSG_TYPE_GAP -> return R.drawable.icon_msg_gap_bg
-            MessageInfo.MSG_TYPE_ANR -> return R.drawable.icon_msg_anr_bg
-            MessageInfo.MSG_TYPE_WARN -> return R.drawable.icon_msg_warn_bg
-            MessageInfo.MSG_TYPE_ACTIVITY_THREAD_H -> return R.drawable.icon_msg_activity_thread_h_bg
+            PolMessageBean.MSG_TYPE_GAP -> return R.drawable.icon_msg_gap_bg
+            PolMessageBean.MSG_TYPE_ANR -> return R.drawable.icon_msg_anr_bg
+            PolMessageBean.MSG_TYPE_WARN -> return R.drawable.icon_msg_warn_bg
+            PolMessageBean.MSG_TYPE_ACTIVITY_THREAD_H -> return R.drawable.icon_msg_activity_thread_h_bg
         }
         return R.drawable.icon_msg_info_bg
     }

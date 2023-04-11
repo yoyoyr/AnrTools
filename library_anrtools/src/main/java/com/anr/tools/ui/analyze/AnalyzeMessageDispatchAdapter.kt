@@ -4,14 +4,13 @@ package com.anr.tools.ui.analyze
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import com.anr.tools.MessageInfo
+import com.anr.tools.bean.PolMessageBean
 import com.anr.tools.R
 
 
 class AnalyzeMessageDispatchAdapter :
     androidx.recyclerview.widget.RecyclerView.Adapter<AnalyzeMessageQueueDispatchViewHolder?>() {
-    var messageInfos: List<MessageInfo>? = null
+    var messageInfos: List<PolMessageBean>? = null
     private var onItemClickListener: OnItemClickListener? = null
     fun setOnItemClickListener(onItemClickListener: OnItemClickListener) {
         this.onItemClickListener = onItemClickListener
@@ -40,7 +39,7 @@ class AnalyzeMessageDispatchAdapter :
     }
 
     interface OnItemClickListener {
-        fun onItemClick(messageInfo: MessageInfo?)
+        fun onItemClick(messageInfo: PolMessageBean?)
     }
 
     override fun getItemCount(): Int {
