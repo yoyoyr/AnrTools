@@ -6,15 +6,6 @@
     android:background="@drawable/icon_item_scheduling_bg"
     android:padding="@dimen/dp_2"
     android:maxWidth="@dimen/dp_270">
-    <TextView
-        android:id="@+id/tvMsgId"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_width="@dimen/dp_90"
-        android:layout_height="wrap_content"
-        android:text="300ms"
-        android:background="#66CC00"
-        android:visibility="visible"/>
     <!--300ms 90dp  那么每 dp 对应0.9ms  该位置反映了两个消息处理的时间间隔-->
     <TextView
         android:id="@+id/tvFixTime"

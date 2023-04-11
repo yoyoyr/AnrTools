@@ -19,7 +19,6 @@ class MessageBean : Serializable {
         private set
     var messageWhat = 0
         private set
-    var msgId: Long = 0
 
     constructor()
 
@@ -41,7 +40,6 @@ class MessageBean : Serializable {
                 ", handlerAddress='" + handlerAddress + '\'' +
                 ", callbackName='" + callbackName + '\'' +
                 ", messageWhat=" + messageWhat +
-                ", msgId=" + msgId +
                 '}'
     }
 

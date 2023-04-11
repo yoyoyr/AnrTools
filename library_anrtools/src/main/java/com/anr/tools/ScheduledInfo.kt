@@ -3,9 +3,8 @@ package com.anr.tools
 import java.io.Serializable
 
 
-class ScheduledInfo(dealt: Long, msgId: String, start: Boolean) : Serializable {
+class ScheduledInfo(dealt: Long, start: Boolean) : Serializable {
     var dealt = NO_DEALT
-    val msgId: String
 
     /**
      * 当前调度是否接收到了结束的信息，如果没有接收到说明主线程很久都没有处理对应的回调
@@ -19,7 +18,6 @@ class ScheduledInfo(dealt: Long, msgId: String, start: Boolean) : Serializable {
 
     init {
         this.dealt = dealt
-        this.msgId = msgId
         isStart = start
     }
 }

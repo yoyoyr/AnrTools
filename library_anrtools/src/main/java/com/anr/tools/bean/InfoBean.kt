@@ -13,7 +13,6 @@ class InfoBean : Serializable {
     var messageSamplerCache: MessageLruCache<PolMessageBean> = MessageLruCache(30L * 1000 * 1000000)
     var scheduledSamplerCache: MessageLruCache<ScheduledInfo> = MessageLruCache()
     var messageQueueSample = StringBuilder()
-    var mainThreadStack: String? = null
     var markTime: String = ""
 
     companion object {

@@ -10,7 +10,6 @@ import com.anr.tools.ScheduledInfo
 class AnalyzeSchedulingViewHolder(itemView: View) :
     RecyclerView.ViewHolder(itemView) {
     var tvSchedulingDealt: TextView = itemView.findViewById(R.id.tvSchedulingDealt)
-    var tvMsgId: TextView = itemView.findViewById(R.id.tvMsgId)
 
     // 300ms 90dp  那么每 dp 对应0.9ms
     var dpMs = 0.9f
@@ -23,7 +22,6 @@ class AnalyzeSchedulingViewHolder(itemView: View) :
         val params = tvSchedulingDealt.layoutParams
         params.width = widthPx
         tvSchedulingDealt.layoutParams = params
-        tvMsgId.text = "msgId：" + info.msgId
     }
 
 }

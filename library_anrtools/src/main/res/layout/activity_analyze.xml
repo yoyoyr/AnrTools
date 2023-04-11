@@ -74,24 +74,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toBottomOf="@+id/tvNameMessageQueue"
-                android:text="消息队列消息分发后续情况："
                 android:layout_marginTop="@dimen/dp_10"/>
 
-
-            <TextView
-                android:id="@+id/tvNameMainThreadStack"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@+id/tvNameMessageQueueInfo"
-                android:text="主线程函数栈调用情况："
-                android:layout_marginTop="@dimen/dp_10"/>
-            <TextView
-                android:id="@+id/tvNameMainThreadStackInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@+id/tvNameMainThreadStack"
-                android:text="主线程函数栈调用情况："
-                android:layout_marginTop="@dimen/dp_10"/>
             <!--cpu 使用情况-->
             <!--内存使用情况-->
         </androidx.constraintlayout.widget.ConstraintLayout>

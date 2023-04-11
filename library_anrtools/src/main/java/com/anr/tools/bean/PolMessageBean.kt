@@ -75,13 +75,13 @@ class PolMessageBean : Serializable {
         const val MSG_TYPE_ACTIVITY_THREAD_H = 0x20
         fun msgTypeToString(@MsgType msgType: Int): String {
             when (msgType) {
-                MSG_TYPE_NONE -> return "MSG_TYPE_NONE"
-                MSG_TYPE_INFO -> return "MSG_TYPE_INFO"
-                MSG_TYPE_WARN -> return "MSG_TYPE_WARN"
-                MSG_TYPE_ANR -> return "MSG_TYPE_ANR"
-                MSG_TYPE_JANK -> return "MSG_TYPE_JANK"
-                MSG_TYPE_GAP -> return "MSG_TYPE_GAP"
-                MSG_TYPE_ACTIVITY_THREAD_H -> return "MSG_TYPE_ACTIVITY_THREAD_H"
+                MSG_TYPE_NONE -> return "NONE"
+                MSG_TYPE_INFO -> return "INFO"
+                MSG_TYPE_WARN -> return "WARN"
+                MSG_TYPE_ANR -> return "ANR"
+                MSG_TYPE_JANK -> return "ANK"
+                MSG_TYPE_GAP -> return "GAP"
+                MSG_TYPE_ACTIVITY_THREAD_H -> return "ACTIVITY_THREAD_H"
             }
             return ""
         }

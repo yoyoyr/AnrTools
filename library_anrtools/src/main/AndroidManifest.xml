@@ -11,7 +11,7 @@
         <activity
             android:name=".ui.analyze.AnalyzeActivity"
             android:exported="false"
-            android:label="@string/log_analyze" />
+            android:label="日志分析" />
 
         <activity
             android:name=".ui.PolMessageListActivity"

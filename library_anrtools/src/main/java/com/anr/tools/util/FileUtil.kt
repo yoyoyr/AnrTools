@@ -1,18 +1,15 @@
 package com.anr.tools.util
 
 import android.os.Environment
+import android.os.Looper
 import android.text.TextUtils
+import com.anr.tools.*
 import com.anr.tools.BaseApplication.Companion.context
-import com.anr.tools.IO_EXECUTOR
 import com.anr.tools.bean.InfoBean
 import com.anr.tools.bean.PolMessageBean
-import com.anr.tools.closeStream
-import com.anr.tools.deleteFile
-import com.anr.tools.maxSize
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.jvm.Synchronized
 
 
 class FileUtil private constructor() {
@@ -35,7 +32,7 @@ class FileUtil private constructor() {
 
     }
 
-    fun onMsgSample(baseTime: Long, msgId: String, msg: PolMessageBean) {
+    fun onMsgSample(baseTime: Long, msg: PolMessageBean) {
         synchronized(this) {
             if (msg.msgType == PolMessageBean.MSG_TYPE_GAP && anrInfo.messageSamplerCache.getLastValue()?.msgType == PolMessageBean.MSG_TYPE_GAP) {
 //                Log.e(TAG,"error continuous gap");
@@ -44,6 +41,19 @@ class FileUtil private constructor() {
         }
     }
 
+    fun onScheduledSample(start: Boolean, baseTime: Long, dealt: Long) {
+        anrInfo.scheduledSamplerCache.put(
+            baseTime,
+            ScheduledInfo(dealt, start)
+        )
+    }
+
+
+    fun onMessageQueueSample(msg: String) {
+        anrInfo.messageQueueSample.append(msg)
+    }
+
+
     fun saveMessage() {
         val temp: InfoBean = anrInfo
         val path = sFormat.format(Date())
@@ -51,10 +61,6 @@ class FileUtil private constructor() {
             temp.markTime = path
         }
         IO_EXECUTOR.execute {
-            LoggerUtils.LOGV(
-                "cacheData schedule size " + temp.scheduledSamplerCache.getAll().size
-                    .toString() + "  file name : " + temp.markTime
-            )
             cacheData(temp.markTime, temp)
         }
     }

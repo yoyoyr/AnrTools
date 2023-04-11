@@ -31,7 +31,6 @@ class AnalyzeActivity : Activity() {
         val tvNameMessageQueueDispatchItemInfo =
             findViewById<TextView>(R.id.tvNameMessageQueueDispatchItemInfo)
         val tvNameMessageQueueInfo = findViewById<TextView>(R.id.tvNameMessageQueueInfo)
-        val tvNameMainThreadStackInfo = findViewById<TextView>(R.id.tvNameMainThreadStackInfo)
         val anrInfo = ANR_INFO
         analyzeMessageDispatchAdapter.setOnItemClickListener(object : AnalyzeMessageDispatchAdapter.OnItemClickListener {
 
@@ -43,7 +42,6 @@ class AnalyzeActivity : Activity() {
 
         anrInfo?.run {
             tvNameMessageQueueInfo.text = String(anrInfo.messageQueueSample)
-            tvNameMainThreadStackInfo.text = anrInfo.mainThreadStack
             analyzeSchedulingAdapter.scheduledInfos = anrInfo.scheduledSamplerCache.getAll()
 
             analyzeSchedulingAdapter.notifyDataSetChanged()
