@@ -1,6 +1,7 @@
 package com.anr.tools
 
 import com.anr.tools.bean.MessageBean
+import com.google.gson.GsonBuilder
 import java.io.File
 
 
@@ -31,6 +32,17 @@ fun String.parseLooperStart(): MessageBean {
         boxMessage = MessageBean()
     }
     return boxMessage
+}
+
+fun Any.tojJson(): String {
+    return if (this == null) {
+        "{}"
+    } else try {
+        GsonBuilder().create().toJson(this)
+    } catch (e: Throwable) {
+        e.printStackTrace()
+        "{}"
+    }
 }
 
 

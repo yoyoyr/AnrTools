@@ -46,7 +46,7 @@ class PolMessageListActivity : Activity() {
         refresh.set(true)
         IO_EXECUTOR.execute {
             refresh.set(false)
-            val anrInfoList: List<InfoBean> = FileUtil.getInstance().restoreData()
+            val anrInfoList = FileUtil.getInstance().restoreData()
             Collections.sort(
                 anrInfoList
             ) { o1, o2 -> o2.markTime.compareTo(o1.markTime) }

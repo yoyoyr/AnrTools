@@ -35,12 +35,12 @@ class MessageBean : Serializable {
     }
 
     override fun toString(): String {
-        return "MessageBean{" +
-                "handleName='" + handleName + '\'' +
-                ", handlerAddress='" + handlerAddress + '\'' +
-                ", callbackName='" + callbackName + '\'' +
-                ", messageWhat=" + messageWhat +
-                '}'
+        return "\n    MessageBean{" +
+                "\n      handleName=${handleName}," +
+                "\n      handlerAddress=${handlerAddress}, " +
+                "\n      callbackName=$callbackName, " +
+                "\n      messageWhat=$messageWhat" +
+                "\n      }"
     }
 
     companion object {

@@ -62,7 +62,6 @@ class MessageMonitor private constructor() : Printer {
     }
 
     override fun println(x: String) {
-        val start = SystemClock.elapsedRealtime()
         if (x.contains("<<<<< Finished to") && !printCountFlg.get()) {
             return
         }
@@ -73,7 +72,6 @@ class MessageMonitor private constructor() : Printer {
             msgEnd()
         }
         printCountFlg.set(!printCountFlg.get())
-        LoggerUtils.LOGV("msg cost ${SystemClock.elapsedRealtime() - start}")
     }
 
     //是否记录线程的调度能力
@@ -99,12 +97,12 @@ class MessageMonitor private constructor() : Printer {
 
     //将这段时间的消息保存到文件中
     fun saveMessage() {
-        FileUtil.getInstance().saveMessage()
         //获取当前消息队列的情况
         Looper.getMainLooper().dump(
             MessageQueuePrint(),
-            ""
+            "\n        "
         )
+        FileUtil.getInstance().saveMessage()
     }
 
     private fun msgStart(msg: String) {

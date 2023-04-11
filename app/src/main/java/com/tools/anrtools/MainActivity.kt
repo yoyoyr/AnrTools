@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.anr.tools.MessageMonitor
 import com.anr.tools.util.LoggerUtils
@@ -12,6 +13,8 @@ import com.anr.tools.util.LoggerUtils
 class MainActivity : AppCompatActivity() {
 
     var mainHandler = Handler(Looper.getMainLooper())
+
+    var clickTime = SystemClock.elapsedRealtime()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +61,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.saveMsg).setOnClickListener {
-             MessageMonitor.getInstance().saveMessage()
+            if (SystemClock.elapsedRealtime() - clickTime < 100) {
+                return@setOnClickListener
+            }
+            Toast.makeText(it.context, "保存成功", Toast.LENGTH_LONG).show()
+            MessageMonitor.getInstance().saveMessage()
+            clickTime = SystemClock.elapsedRealtime()
         }
     }
 }

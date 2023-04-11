@@ -43,13 +43,11 @@ class PolMessageBean : Serializable {
     var messageCreateTime = SystemClock.elapsedRealtime()
 
     override fun toString(): String {
-        return "MessageInfo{" +
-                "msgType=" + msgTypeToString(msgType) +
-                ", count=" + count +
-                ", wallTime=" + wallTime +
-                ", cpuTime=" + cpuTime +
-                ", boxMessages=" + boxMessages +
-                '}'
+        return "\nMessageInfo{\n" +
+                "   msgType=${msgTypeToString(msgType)}, count=$count, " +
+                "\n   wallTime=$wallTime, cpuTime=$cpuTime, " +
+                "\n   boxMessages=$boxMessages" +
+                "      \n}\n"
     }
 
     companion object {
