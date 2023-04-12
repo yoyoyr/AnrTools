@@ -5,12 +5,13 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Printer
 import com.anr.tools.bean.MessageBean
-import com.anr.tools.bean.PolMessageBean
-import com.anr.tools.util.FileUtil
+import com.anr.tools.bean.MessageListBean
 import com.anr.tools.util.LoggerUtils
+import com.anr.tools.util.isBoxMessageActivityThread
+import com.anr.tools.util.parseLooperStart
 import java.util.concurrent.atomic.AtomicBoolean
 
-class MessageMonitor private constructor() : Printer {
+class MainLooperMonitor private constructor() : Printer {
 
     @Volatile
     private var start = false
@@ -33,7 +34,9 @@ class MessageMonitor private constructor() : Printer {
     //上一条消息的cpu时间片结束时间
     private var lastMessageCpuEndTime = noInit
 
-    private var polMessage: PolMessageBean? = null
+    private var monitorMsgId = 0L
+
+    private var polMessage: MessageListBean? = null
 
     private lateinit var currentMessage: MessageBean
 
@@ -42,15 +45,15 @@ class MessageMonitor private constructor() : Printer {
 
     private var checkId: Long = -1
     private val mainHandler = Handler(Looper.getMainLooper())
-    var checkMainRunnable = object : Runnable {
+    private var checkMainRunnable = object : Runnable {
         var dealtTime = SystemClock.elapsedRealtime()
         override fun run() {
             //时间偏差 差值越大说明调度能力越差
             //就采集一次。
-            val offset: Long = SystemClock.elapsedRealtime() - dealtTime - warnTime
+            val offset = SystemClock.elapsedRealtime() - dealtTime - warnTime
             if (checkId > -1) {
                 //需要注意的是，这个只能反映发生anr前的调度能力，会存在发生anr前最后一次调度检测没有收集到。
-                FileUtil.getInstance().onScheduledSample(false, dealtTime, offset)
+                MessageCache.getInstance().onScheduledSample(true, dealtTime, monitorMsgId, offset)
             }
             if (start) {
                 checkId++
@@ -74,7 +77,9 @@ class MessageMonitor private constructor() : Printer {
         printCountFlg.set(!printCountFlg.get())
     }
 
-    //是否记录线程的调度能力
+    /**
+     * checkMain 是否记录线程的调度能力
+     */
     fun startMonitor(checkMain: Boolean = true) {
         if (start) {
             LoggerUtils.LOGW("already start")
@@ -102,19 +107,23 @@ class MessageMonitor private constructor() : Printer {
             MessageQueuePrint(),
             "\n        "
         )
-        FileUtil.getInstance().saveMessage()
+        MessageCache.getInstance().saveMessage()
     }
 
     private fun msgStart(msg: String) {
         messageStartTime = SystemClock.elapsedRealtime()
         currentMessage = msg.parseLooperStart()
+        currentMessage.monitorMsgId = monitorMsgId
         messageCpuStartTime = SystemClock.currentThreadTimeMillis()
         //两次消息的时间间隔较大，如前一条消息处理完了以后等待了300ms才来下一条消息
         //单独处理消息且增加一个gap消息 不应该存在两个连续的gap消息
         if (messageStartTime - lastMessageEndTime > gapTime && lastMessageEndTime != noInit) {
+            polMessage?.run {
+                count++
+            }
             handleMsg()
-            polMessage = PolMessageBean().apply {
-                msgType = PolMessageBean.MSG_TYPE_GAP
+            polMessage = MessageListBean().apply {
+                msgType = MessageListBean.MSG_TYPE_GAP
                 wallTime = messageStartTime - lastMessageEndTime
                 cpuTime = messageCpuStartTime - lastMessageCpuEndTime
             }
@@ -122,7 +131,7 @@ class MessageMonitor private constructor() : Printer {
             polMessageStartTime = messageStartTime
         }
         if (polMessage == null) {
-            polMessage = PolMessageBean()
+            polMessage = MessageListBean()
             polMessageStartTime = SystemClock.elapsedRealtime()
             messageStartTime = polMessageStartTime
             messageCpuStartTime = SystemClock.currentThreadTimeMillis()
@@ -148,20 +157,20 @@ class MessageMonitor private constructor() : Printer {
         ) {
             polMessage?.run {
                 if (count > 1) { //先处理原来的信息包
-                    msgType = PolMessageBean.MSG_TYPE_INFO
+                    msgType = MessageListBean.MSG_TYPE_INFO
                     handleMsg()
                 }
             }
 
-            polMessage = PolMessageBean().apply {
+            polMessage = MessageListBean().apply {
                 wallTime = lastMessageEndTime - messageStartTime
                 cpuTime = lastMessageCpuEndTime - messageCpuStartTime
                 boxMessages.add(currentMessage)
-                msgType = PolMessageBean.MSG_TYPE_WARN
+                msgType = MessageListBean.MSG_TYPE_WARN
                 if (msgDealtTime > anrTime) {
-                    msgType = PolMessageBean.MSG_TYPE_ANR
+                    msgType = MessageListBean.MSG_TYPE_ANR
                 } else if (msgActivityThread) {
-                    msgType = PolMessageBean.MSG_TYPE_ACTIVITY_THREAD_H
+                    msgType = MessageListBean.MSG_TYPE_ACTIVITY_THREAD_H
                 }
             }
 
@@ -180,12 +189,18 @@ class MessageMonitor private constructor() : Printer {
             }
         }
 
+        if (monitorMsgId > 1000000) {//100万条从0开始计数
+            monitorMsgId = 0
+        } else {
+            monitorMsgId++
+        }
+
     }
 
     //保存msg信息
     private fun handleMsg() {
         polMessage?.run {
-            FileUtil.getInstance().onMsgSample(
+            MessageCache.getInstance().onMsgSample(
                 SystemClock.elapsedRealtimeNanos(),
                 this
             )
@@ -195,7 +210,7 @@ class MessageMonitor private constructor() : Printer {
 
 
     companion object {
-        private val messageMonitor = MessageMonitor()
+        private val messageMonitor = MainLooperMonitor()
 
         fun getInstance() = messageMonitor
     }

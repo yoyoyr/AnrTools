@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.anr.tools.ANR_INFO
-import com.anr.tools.bean.PolMessageBean
+import com.anr.tools.bean.MessageListBean
 import com.anr.tools.R
 
 
@@ -34,7 +34,7 @@ class AnalyzeActivity : Activity() {
         val anrInfo = ANR_INFO
         analyzeMessageDispatchAdapter.setOnItemClickListener(object : AnalyzeMessageDispatchAdapter.OnItemClickListener {
 
-            override fun onItemClick(messageInfo: PolMessageBean?) {
+            override fun onItemClick(messageInfo: MessageListBean?) {
                 tvNameMessageQueueDispatchItemInfo.text = messageInfo.toString()
             }
 

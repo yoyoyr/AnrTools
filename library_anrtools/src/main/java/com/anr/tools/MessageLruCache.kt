@@ -7,7 +7,7 @@ class MessageLruCache<V> : Serializable {
     /**
      * 默认30s  单位是ms
      */
-    private var offsetTime = (30 * 1000).toLong()
+    private var offsetTime = (60 * 1000*10).toLong()
     private var lastPutTime: Long = 0
 
     /**xs

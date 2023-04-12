@@ -5,7 +5,7 @@ import android.app.ActivityManager
 import android.os.Process
 import com.anr.tools.BaseApplication
 import com.anr.tools.util.LoggerUtils
-import com.anr.tools.MessageMonitor
+import com.anr.tools.MainLooperMonitor
 
 
 class TestApplication : BaseApplication() {
@@ -22,7 +22,7 @@ class TestApplication : BaseApplication() {
         }
         if (processName == packageName) {
             LoggerUtils.LOGV("init BlockMonitor")
-            MessageMonitor.getInstance().startMonitor()
+            MainLooperMonitor.getInstance().startMonitor()
         }
 
     }

@@ -12,8 +12,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.anr.tools.ANR_INFO
-import com.anr.tools.bean.InfoBean
-import com.anr.tools.util.FileUtil
+import com.anr.tools.bean.PolMessageBean
+import com.anr.tools.MessageCache
 import com.anr.tools.IO_EXECUTOR
 import com.anr.tools.R
 import com.anr.tools.ui.analyze.AnalyzeActivity
@@ -46,7 +46,7 @@ class PolMessageListActivity : Activity() {
         refresh.set(true)
         IO_EXECUTOR.execute {
             refresh.set(false)
-            val anrInfoList = FileUtil.getInstance().restoreData()
+            val anrInfoList = MessageCache.getInstance().restoreData()
             Collections.sort(
                 anrInfoList
             ) { o1, o2 -> o2.markTime.compareTo(o1.markTime) }
@@ -59,7 +59,7 @@ class PolMessageListActivity : Activity() {
     }
 
     private class FileAdapter : RecyclerView.Adapter<FileViewHolder?>() {
-        var anrInfoList: List<InfoBean>? = null
+        var anrInfoList: List<PolMessageBean>? = null
 
         override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): FileViewHolder {
             return FileViewHolder(

@@ -1,7 +1,6 @@
-package com.anr.tools
+package com.anr.tools.util
 
 import com.anr.tools.bean.MessageBean
-import com.google.gson.GsonBuilder
 import java.io.File
 
 
@@ -33,18 +32,6 @@ fun String.parseLooperStart(): MessageBean {
     }
     return boxMessage
 }
-
-fun Any.tojJson(): String {
-    return if (this == null) {
-        "{}"
-    } else try {
-        GsonBuilder().create().toJson(this)
-    } catch (e: Throwable) {
-        e.printStackTrace()
-        "{}"
-    }
-}
-
 
 /**
  * 判断某条消息是不是在更新ui

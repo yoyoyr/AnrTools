@@ -1,6 +1,6 @@
 package com.anr.tools
 
-import com.anr.tools.bean.InfoBean
+import com.anr.tools.bean.PolMessageBean
 import java.util.concurrent.Executors
 
 
@@ -25,4 +25,4 @@ const val maxSize = 20
 val IO_EXECUTOR = Executors.newFixedThreadPool(3)
 
 //当前分析的polMessage对象
-var ANR_INFO: InfoBean? = null
+var ANR_INFO: PolMessageBean? = null

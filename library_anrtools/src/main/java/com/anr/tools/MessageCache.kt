@@ -1,20 +1,22 @@
-package com.anr.tools.util
+package com.anr.tools
 
 import android.os.Environment
-import android.os.Looper
 import android.text.TextUtils
-import com.anr.tools.*
 import com.anr.tools.BaseApplication.Companion.context
-import com.anr.tools.bean.InfoBean
 import com.anr.tools.bean.PolMessageBean
+import com.anr.tools.bean.MessageListBean
+import com.anr.tools.bean.ScheduledBean
+import com.anr.tools.util.LoggerUtils
+import com.anr.tools.util.closeStream
+import com.anr.tools.util.deleteFile
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 
-class FileUtil private constructor() {
+class MessageCache private constructor() {
 
-    private var anrInfo = InfoBean()
+    private var anrInfo = PolMessageBean()
     private val sFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS")
     private val diskCacheDir: File
 
@@ -32,19 +34,14 @@ class FileUtil private constructor() {
 
     }
 
-    fun onMsgSample(baseTime: Long, msg: PolMessageBean) {
-        synchronized(this) {
-            if (msg.msgType == PolMessageBean.MSG_TYPE_GAP && anrInfo.messageSamplerCache.getLastValue()?.msgType == PolMessageBean.MSG_TYPE_GAP) {
-//                Log.e(TAG,"error continuous gap");
-            }
-            anrInfo.messageSamplerCache.put(baseTime, msg)
-        }
+    fun onMsgSample(baseTime: Long, msg: MessageListBean) {
+        anrInfo.messageSamplerCache.put(baseTime, msg)
     }
 
-    fun onScheduledSample(start: Boolean, baseTime: Long, dealt: Long) {
+    fun onScheduledSample(isDone: Boolean, baseTime: Long, monitorMsgId: Long, overTime: Long) {
         anrInfo.scheduledSamplerCache.put(
             baseTime,
-            ScheduledInfo(dealt, start)
+            ScheduledBean(overTime, monitorMsgId, isDone)
         )
     }
 
@@ -55,7 +52,7 @@ class FileUtil private constructor() {
 
 
     fun saveMessage() {
-        val temp: InfoBean = anrInfo
+        val temp: PolMessageBean = anrInfo
         val path = sFormat.format(Date())
         if (TextUtils.isEmpty(temp.markTime)) {
             temp.markTime = path
@@ -65,7 +62,7 @@ class FileUtil private constructor() {
         }
     }
 
-    private fun cacheData(path: String?, serializable: InfoBean) {
+    private fun cacheData(path: String?, serializable: PolMessageBean) {
         //如果文件不存在就创建文件
         val file = File(diskCacheDir.path + File.separator + path)
         //file.createNewFile();
@@ -91,8 +88,8 @@ class FileUtil private constructor() {
         }
     }
 
-    fun restoreData(): List<InfoBean> {
-        val result: MutableList<InfoBean> = ArrayList()
+    fun restoreData(): List<PolMessageBean> {
+        val result: MutableList<PolMessageBean> = ArrayList()
         val files = diskCacheDir.listFiles() ?: return result
         for (file in files) {
             var ois: ObjectInputStream? = null
@@ -101,7 +98,8 @@ class FileUtil private constructor() {
                 ois = ObjectInputStream(FileInputStream(file))
                 ois.run {
                     readObject().run {
-                        if (this is InfoBean) {
+                        if (this is PolMessageBean) {
+                            LoggerUtils.LOGV(this.toString())
                             result.add(this)
                         }
                     }
@@ -121,7 +119,7 @@ class FileUtil private constructor() {
 
 
     companion object {
-        private val fileSample = FileUtil()
+        private val fileSample = MessageCache()
         fun getInstance() = fileSample
     }
 

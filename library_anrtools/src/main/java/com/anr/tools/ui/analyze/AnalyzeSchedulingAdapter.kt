@@ -4,12 +4,12 @@ package com.anr.tools.ui.analyze
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.anr.tools.R
-import com.anr.tools.ScheduledInfo
+import com.anr.tools.bean.ScheduledBean
 
 
 class AnalyzeSchedulingAdapter :
     androidx.recyclerview.widget.RecyclerView.Adapter<AnalyzeSchedulingViewHolder?>() {
-    var scheduledInfos: List<ScheduledInfo>? = null
+    var scheduledInfos: List<ScheduledBean>? = null
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): AnalyzeSchedulingViewHolder {
         return AnalyzeSchedulingViewHolder(
             LayoutInflater.from(viewGroup.context)
