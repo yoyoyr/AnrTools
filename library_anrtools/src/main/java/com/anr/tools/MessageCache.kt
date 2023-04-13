@@ -1,7 +1,6 @@
 package com.anr.tools
 
 import android.os.Environment
-import android.text.TextUtils
 import com.anr.tools.BaseApplication.Companion.context
 import com.anr.tools.bean.PolMessageBean
 import com.anr.tools.bean.MessageListBean
@@ -18,6 +17,7 @@ class MessageCache private constructor() {
 
     private var anrInfo = PolMessageBean()
     private val sFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS")
+    private val hFormat = SimpleDateFormat("HH:mm:ss")
     private val diskCacheDir: File
 
     private var currentSize = 0
@@ -35,6 +35,7 @@ class MessageCache private constructor() {
     }
 
     fun onMsgSample(baseTime: Long, msg: MessageListBean) {
+        msg.messageCreateTime = hFormat.format(System.currentTimeMillis())
         anrInfo.messageSamplerCache.put(baseTime, msg)
     }
 
@@ -52,17 +53,15 @@ class MessageCache private constructor() {
 
 
     fun saveMessage() {
-        val temp: PolMessageBean = anrInfo
-        val path = sFormat.format(Date())
-        if (TextUtils.isEmpty(temp.markTime)) {
-            temp.markTime = path
-        }
+        val temp = anrInfo
+        val path = sFormat.format(System.currentTimeMillis())
+        temp.markTime = path
         IO_EXECUTOR.execute {
             cacheData(temp.markTime, temp)
         }
     }
 
-    private fun cacheData(path: String?, serializable: PolMessageBean) {
+    private fun cacheData(path: String, polMessageBean: PolMessageBean) {
         //如果文件不存在就创建文件
         val file = File(diskCacheDir.path + File.separator + path)
         //file.createNewFile();
@@ -71,7 +70,7 @@ class MessageCache private constructor() {
         var fos: ObjectOutputStream? = null
         try {
             fos = ObjectOutputStream(FileOutputStream(file))
-            fos.writeObject(serializable)
+            fos.writeObject(polMessageBean)
         } catch (e: IOException) {
             e.printStackTrace()
         } finally {
@@ -99,7 +98,6 @@ class MessageCache private constructor() {
                 ois.run {
                     readObject().run {
                         if (this is PolMessageBean) {
-                            LoggerUtils.LOGV(this.toString())
                             result.add(this)
                         }
                     }

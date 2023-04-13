@@ -36,6 +36,8 @@ class MainActivity : AppCompatActivity() {
                     LoggerUtils.LOGV("send message...")
                 })
             }
+
+
         }
 
         findViewById<Button>(R.id.saveMsg).setOnClickListener {
@@ -47,4 +49,5 @@ class MainActivity : AppCompatActivity() {
             clickTime = SystemClock.elapsedRealtime()
         }
     }
+
 }

@@ -14,6 +14,7 @@ class AnalyzeMessageQueueDispatchViewHolder(itemView: View) :
     private val tvCpuTime: TextView = itemView.findViewById(R.id.tvCpuTime)
     private val tvMsgCount: TextView = itemView.findViewById(R.id.tvMsgCount)
     private val tvMsgId: TextView = itemView.findViewById(R.id.tvMsgId)
+    private val tvMsgTime: TextView = itemView.findViewById(R.id.tvMsgTime)
     fun parse(messageInfo: MessageListBean) {
         itemView.setBackgroundResource(getItemBg(messageInfo))
 
@@ -26,6 +27,7 @@ class AnalyzeMessageQueueDispatchViewHolder(itemView: View) :
         tvWallTime.text = "总耗时: " + messageInfo.wallTime
         tvCpuTime.text = "cpu耗时: " + messageInfo.cpuTime
         tvMsgCount.text = "消息个数: " + messageInfo.count
+        tvMsgTime.text = "消息创建时间: " + messageInfo.messageCreateTime
     }
 
     private fun getItemBg(messageInfo: MessageListBean): Int {

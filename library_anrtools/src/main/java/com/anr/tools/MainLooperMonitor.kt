@@ -100,13 +100,10 @@ class MainLooperMonitor private constructor() : Printer {
         start = false
     }
 
-    //将这段时间的消息保存到文件中
+    //将限定时间段的消息保存到文件中
     fun saveMessage() {
         //获取当前消息队列的情况
-        Looper.getMainLooper().dump(
-            MessageQueuePrint(),
-            "\n        "
-        )
+        Looper.getMainLooper().dump(MessageQueuePrint(), "\n        ")
         MessageCache.getInstance().saveMessage()
     }
 
@@ -201,7 +198,7 @@ class MainLooperMonitor private constructor() : Printer {
     private fun handleMsg() {
         polMessage?.run {
             MessageCache.getInstance().onMsgSample(
-                SystemClock.elapsedRealtimeNanos(),
+                SystemClock.elapsedRealtime(),
                 this
             )
             polMessage = null

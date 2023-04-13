@@ -21,6 +21,9 @@ const val anrTime: Long = 3000
  */
 const val maxSize = 20
 
+//保存5分钟前的消息
+const val MESSAGE_CACHE_TIME = 1 * 30 * 1000L
+
 //任务执行器
 val IO_EXECUTOR = Executors.newFixedThreadPool(3)
 

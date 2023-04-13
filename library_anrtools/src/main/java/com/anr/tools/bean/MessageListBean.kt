@@ -35,7 +35,7 @@ class MessageListBean : Serializable {
     /**
      * 消息被创建的时间
      */
-    var messageCreateTime = SystemClock.elapsedRealtime()
+    var messageCreateTime = ""
 
     override fun toString(): String {
         return "\nMessageListBean{\n" +

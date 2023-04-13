@@ -12,7 +12,7 @@
         android:layout_height="44dp"
         android:gravity="center"
         android:textSize="@dimen/sp_18"
-        android:text="历史耗时消息导致anr" />
+        android:text="历史耗时消息" />
 
     <Button
         android:id="@+id/manyAnr"
@@ -20,7 +20,7 @@
         android:layout_height="44dp"
         android:gravity="center"
         android:textSize="@dimen/sp_18"
-        android:text="发送很多消息导致anr" />
+        android:text="发送很多消息" />
 
     <Button
         android:id="@+id/saveMsg"

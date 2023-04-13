@@ -4,10 +4,10 @@ import android.os.SystemClock
 import java.io.Serializable
 
 class MessageLruCache<V> : Serializable {
-    /**
-     * 默认30s  单位是ms
-     */
-    private var offsetTime = (60 * 1000*10).toLong()
+
+    //默认5分钟
+    private var offsetTime = MESSAGE_CACHE_TIME
+
     private var lastPutTime: Long = 0
 
     /**xs
@@ -16,16 +16,7 @@ class MessageLruCache<V> : Serializable {
     private var lastValue: V? = null
 
     //按插入顺序保存 依次移除时间最早的
-    private val linkedHashMap = TimeLinkedHashMap(0, 0.75f, false)
-
-    constructor() {}
-
-    /**
-     * 当最后一个和第一个时间偏差超过该值的时候，会将LinkedHashMap 中链表表头的元素移除
-     */
-    constructor(offsetTime: Long) {
-        this.offsetTime = offsetTime
-    }
+    private val linkedHashMap = MessageLinkedHasMhMap(0, 0.75f, false)
 
     fun put(value: V) {
         put(SystemClock.elapsedRealtime(), value)
@@ -55,14 +46,13 @@ class MessageLruCache<V> : Serializable {
     }
 
 
-    private inner class TimeLinkedHashMap(
+    private inner class MessageLinkedHasMhMap(
         initialCapacity: Int,
         loadFactor: Float,
         accessOrder: Boolean
     ) :
         LinkedHashMap<Long, V>(initialCapacity, loadFactor, accessOrder) {
         override fun removeEldestEntry(eldest: Map.Entry<Long, V>): Boolean {
-            //这样会不会导致存储的数据不够 offsetTime ？
             val iterator = linkedHashMap.entries.iterator()
             while (iterator.hasNext()) {
                 val entry = iterator.next()
