@@ -11,7 +11,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.anr.tools.ANR_INFO
+import com.anr.tools.MSG_INFO
 import com.anr.tools.bean.PolMessageBean
 import com.anr.tools.MessageCache
 import com.anr.tools.IO_EXECUTOR
@@ -70,7 +70,7 @@ class PolMessageListActivity : Activity() {
         override fun onBindViewHolder(fileViewHolder: FileViewHolder, i: Int) {
             anrInfoList?.get(i)?.let { anrInfo ->
                 fileViewHolder.itemView.setOnClickListener {
-                    ANR_INFO = anrInfo
+                    MSG_INFO = anrInfo
                     val context: Context = fileViewHolder.itemView.context
                     context.startActivity(Intent(context, AnalyzeActivity::class.java))
                 }

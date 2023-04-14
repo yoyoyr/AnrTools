@@ -9,6 +9,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.anr.tools.MainLooperMonitor
 import com.anr.tools.util.LoggerUtils
+import com.hjq.permissions.OnPermissionCallback
+import com.hjq.permissions.Permission
+import com.hjq.permissions.XXPermissions
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,6 +22,34 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+
+        XXPermissions.with(this)
+            .permission(Permission.WRITE_EXTERNAL_STORAGE)
+            .permission(Permission.READ_MEDIA_AUDIO)
+            .permission(Permission.READ_MEDIA_IMAGES)
+            .permission(Permission.READ_MEDIA_VIDEO)
+            .request(object : OnPermissionCallback {
+                override fun onGranted(permissions: List<String>, all: Boolean) {
+                    if (!all) {
+                        Toast.makeText(this@MainActivity, "获取部分权限成功，但部分权限未正常授予", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+
+                override fun onDenied(permissions: List<String>, never: Boolean) {
+                    if (never) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "被永久拒绝授权，请手动授予文件读写权限权限",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        // 如果是被永久拒绝就跳转到应用权限系统设置页
+                    } else {
+                        Toast.makeText(this@MainActivity, "获取文件读写权限失败", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            })
 
         findViewById<Button>(R.id.bigAnr).setOnClickListener {
             mainHandler.post(Runnable {

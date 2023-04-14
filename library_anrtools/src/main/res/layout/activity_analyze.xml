@@ -31,7 +31,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerMainThreadScheduling"
                 android:layout_width="0dp"
-                android:layout_height="@dimen/dp_40"
+                android:layout_height="80dp"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
@@ -66,15 +66,25 @@
                 app:layout_constraintTop_toBottomOf="@+id/tvNameMessageQueueDispatch" />
 
             <TextView
+                android:id="@+id/nameMessageQueueDispatchItemInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="@dimen/dp_10"
+                android:layout_marginEnd="16dp"
+                android:text="每一个消息的调用情况，点击上面的元素获取详情"
+                android:textSize="16sp"
+                app:layout_constraintTop_toBottomOf="@+id/recyclerViewMessageQueue" />
+
+            <TextView
                 android:id="@+id/tvNameMessageQueueDispatchItemInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="@dimen/dp_10"
                 android:layout_marginEnd="16dp"
-                android:hint="每一个消息的调用情况，点击上面的元素获取详情"
                 android:textSize="16sp"
-                app:layout_constraintTop_toBottomOf="@+id/recyclerViewMessageQueue" />
+                app:layout_constraintTop_toBottomOf="@+id/nameMessageQueueDispatchItemInfo" />
 
             <TextView
                 android:id="@+id/tvNameMessageQueue"

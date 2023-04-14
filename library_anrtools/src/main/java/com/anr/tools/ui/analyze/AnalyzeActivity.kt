@@ -5,7 +5,7 @@ import android.app.Activity
 import android.os.Bundle
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.anr.tools.ANR_INFO
+import com.anr.tools.MSG_INFO
 import com.anr.tools.bean.MessageListBean
 import com.anr.tools.R
 
@@ -25,13 +25,17 @@ class AnalyzeActivity : Activity() {
         val recyclerMainThreadScheduling: RecyclerView =
             findViewById(R.id.recyclerMainThreadScheduling)
         recyclerMainThreadScheduling.adapter = analyzeSchedulingAdapter
+
+
         val recyclerViewMessageQueue: RecyclerView = findViewById(R.id.recyclerViewMessageQueue)
         val analyzeMessageDispatchAdapter = AnalyzeMessageDispatchAdapter()
         recyclerViewMessageQueue.adapter = analyzeMessageDispatchAdapter
+
+
         val tvNameMessageQueueDispatchItemInfo =
             findViewById<TextView>(R.id.tvNameMessageQueueDispatchItemInfo)
         val tvNameMessageQueueInfo = findViewById<TextView>(R.id.tvNameMessageQueueInfo)
-        val anrInfo = ANR_INFO
+        val anrInfo = MSG_INFO
         analyzeMessageDispatchAdapter.setOnItemClickListener(object : AnalyzeMessageDispatchAdapter.OnItemClickListener {
 
             override fun onItemClick(messageInfo: MessageListBean?) {
@@ -43,10 +47,13 @@ class AnalyzeActivity : Activity() {
         anrInfo?.run {
             tvNameMessageQueueInfo.text = String(anrInfo.messageQueueSample)
             analyzeSchedulingAdapter.scheduledInfos = anrInfo.scheduledSamplerCache.getAll()
-
             analyzeSchedulingAdapter.notifyDataSetChanged()
+            recyclerMainThreadScheduling.scrollToPosition(analyzeSchedulingAdapter.itemCount - 1)
+
+
             analyzeMessageDispatchAdapter.messageInfos = anrInfo.messageSamplerCache.getAll()
             analyzeMessageDispatchAdapter.notifyDataSetChanged()
+            recyclerViewMessageQueue.scrollToPosition(analyzeMessageDispatchAdapter.itemCount - 1)
         }
     }
 }

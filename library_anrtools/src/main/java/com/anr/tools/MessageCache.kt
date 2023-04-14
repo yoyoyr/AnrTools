@@ -31,7 +31,9 @@ class MessageCache private constructor() {
             context.cacheDir.path
         }
         diskCacheDir = File(cachePath + File.separator + "block_anr")
-
+        if (!diskCacheDir.exists()) {
+            diskCacheDir.mkdir()
+        }
     }
 
     fun onMsgSample(baseTime: Long, msg: MessageListBean) {
@@ -64,7 +66,9 @@ class MessageCache private constructor() {
     private fun cacheData(path: String, polMessageBean: PolMessageBean) {
         //如果文件不存在就创建文件
         val file = File(diskCacheDir.path + File.separator + path)
-        //file.createNewFile();
+        if (!file.exists()) {
+            file.createNewFile()
+        }
         //获取输出流
         //这里如果文件不存在会创建文件，  如果文件存在，新写会覆盖以前的内容吗？
         var fos: ObjectOutputStream? = null
