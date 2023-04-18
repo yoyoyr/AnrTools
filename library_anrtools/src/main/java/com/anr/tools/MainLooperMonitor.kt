@@ -146,7 +146,7 @@ class MainLooperMonitor private constructor() : Printer {
     private fun msgEnd() {
         lastMessageEndTime = SystemClock.elapsedRealtime()
         lastMessageCpuEndTime = SystemClock.currentThreadTimeMillis()
-        val msgDealtTime: Long = lastMessageEndTime - messageStartTime
+        val msgDealtTime = lastMessageEndTime - messageStartTime
         //判断是否是ActivityThread.H的消息
         val msgActivityThread = currentMessage.isBoxMessageActivityThread()
         if (msgDealtTime > warnTime //单条消息时间达到警告条件的
