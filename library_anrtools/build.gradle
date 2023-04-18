@@ -35,5 +35,9 @@ dependencies {
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     implementation 'com.google.android.material:material:1.6.0'
     implementation 'com.google.code.gson:gson:2.8.6'
+//    implementation project(':matrix-backtrace')
+    implementation project(':matrix-hooks')
+//    implementation project(':matrix-trace-canary')
+//    implementation project(':matrix:matrix-android-lib')
 
 }

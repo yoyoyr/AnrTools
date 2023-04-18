@@ -33,13 +33,12 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.1'
+        classpath 'com.android.tools.build:gradle:4.1.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
 allprojects {
-    buildDir = "${rootProject.rootDir}/build/${project.name}"
 
     repositories {
         mavenLocal()
@@ -68,4 +67,10 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+
+ext {
+
+    ABI_FILTERS = ['armeabi-v7a', 'arm64-v8a']
 }

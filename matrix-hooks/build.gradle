@@ -1,0 +1,55 @@
+apply plugin: 'com.android.library'
+
+apply from: rootProject.file('gradle/WeChatNativeDepend.gradle')
+
+android {
+    compileSdkVersion 33
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+
+        ndk {
+            abiFilters rootProject.ABI_FILTERS as String[]
+        }
+
+
+        externalNativeBuild {
+            cmake {
+                arguments = ['-DANDROID_ST L=c++_shared', "-DEnableLOG=OFF"]
+            }
+
+            exportHeaders {
+                from('src/main/cpp/common') {
+                    include '**/*.h'
+                    include '*.h'
+                }
+
+                from('src/main/cpp/external/fastunwind') {
+                    include '**/*.h'
+                }
+            }
+        }
+    }
+
+    buildTypes {
+
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+
+}
+
+apply from: project.file('dependencies.gradle')

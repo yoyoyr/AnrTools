@@ -1,3 +1,10 @@
 
 include ':app'
 include ':library_anrtools'
+
+
+include ':matrix-android-lib'
+include ':matrix-android-commons'
+include ':matrix-backtrace'
+//include ':matrix-trace-canary'
+include ':matrix-hooks'

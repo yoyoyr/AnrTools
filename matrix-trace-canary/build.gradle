@@ -1,0 +1,73 @@
+apply plugin: 'com.android.library'
+
+apply from: rootProject.file('gradle/WeChatNativeDepend.gradle')
+
+android {
+    compileSdkVersion 33
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=gnu++11 -frtti -fexceptions"
+            }
+            ndk {
+                abiFilters "armeabi-v7a", "arm64-v8a"
+            }
+        }
+
+    }
+//    buildTypes {
+//        release {
+//            minifyEnabled false
+//            consumerProguardFiles 'proguard-rules.pro'
+//        }
+//    }
+//
+//    externalNativeBuild {
+//        cmake {
+//            path "CMakeLists.txt"
+//        }
+//    }
+//
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+            java {
+                srcDir "src/main/java"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            consumerProguardFiles 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    androidTestImplementation 'androidx.annotation:annotation:1.0.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+
+    testImplementation 'junit:junit:4.12'
+    implementation project(':matrix-android-lib')
+    implementation project(':matrix-android-commons')
+    implementation project(':matrix-backtrace')
+    implementation project(':matrix-hooks')
+}
