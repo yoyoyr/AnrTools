@@ -17,6 +17,7 @@
             <option value="$PROJECT_DIR$/matrix-android-lib" />
             <option value="$PROJECT_DIR$/matrix-backtrace" />
             <option value="$PROJECT_DIR$/matrix-hooks" />
+            <option value="$PROJECT_DIR$/matrix-trace-canary" />
           </set>
         </option>
       </GradleProjectSettings>
