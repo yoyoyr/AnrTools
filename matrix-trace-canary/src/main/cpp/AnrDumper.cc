@@ -49,168 +49,175 @@
 #define O_TRUNC 00001000
 
 namespace MatrixTracer {
-static const int NATIVE_DUMP_TIMEOUT = 2; // 2 seconds
-static sigset_t old_sigSet;
-const char* mAnrTraceFile;
-const char* mPrintTraceFile;
+    static const int NATIVE_DUMP_TIMEOUT = 2; // 2 seconds
+    static sigset_t old_sigSet;
+    const char *mAnrTraceFile;
+    const char *mPrintTraceFile;
 
-AnrDumper::AnrDumper(const char* anrTraceFile, const char* printTraceFile) {
-    // must unblock SIGQUIT, otherwise the signal handler can not capture SIGQUIT
-    mAnrTraceFile = anrTraceFile;
-    mPrintTraceFile = printTraceFile;
-    sigset_t sigSet;
-    sigemptyset(&sigSet);
-    sigaddset(&sigSet, SIGQUIT);
-    pthread_sigmask(SIG_UNBLOCK, &sigSet , &old_sigSet);
-}
-
-static int getSignalCatcherThreadId() {
-    char taskDirPath[128];
-    DIR *taskDir;
-    long long sigblk;
-    int signalCatcherTid = -1;
-    int firstSignalCatcherTid = -1;
-
-    snprintf(taskDirPath, sizeof(taskDirPath), "/proc/%d/task", getpid());
-    if ((taskDir = opendir(taskDirPath)) == nullptr) {
-        return -1;
+    AnrDumper::AnrDumper(const char *anrTraceFile, const char *printTraceFile) {
+        // must unblock SIGQUIT, otherwise the signal handler can not capture SIGQUIT
+        Logging::ALOGV("init AnrDumper");
+        mAnrTraceFile = anrTraceFile;
+        mPrintTraceFile = printTraceFile;
+        sigset_t sigSet;
+        sigemptyset(&sigSet);
+        sigaddset(&sigSet, SIGQUIT);
+        pthread_sigmask(SIG_UNBLOCK, &sigSet, &old_sigSet);
     }
-    struct dirent *dent;
-    pid_t tid;
-    while ((dent = readdir(taskDir)) != nullptr) {
-        tid = atoi(dent->d_name);
-        if (tid <= 0) {
-            continue;
+
+    static int getSignalCatcherThreadId() {
+        char taskDirPath[128];
+        DIR *taskDir;
+        long long sigblk;
+        int signalCatcherTid = -1;
+        int firstSignalCatcherTid = -1;
+
+        snprintf(taskDirPath, sizeof(taskDirPath), "/proc/%d/task", getpid());
+        if ((taskDir = opendir(taskDirPath)) == nullptr) {
+            return -1;
         }
-
-        char threadName[1024];
-        char commFilePath[1024];
-        snprintf(commFilePath, sizeof(commFilePath), "/proc/%d/task/%d/comm", getpid(), tid);
-
-        Support::readFileAsString(commFilePath, threadName, sizeof(threadName));
-
-        if (strncmp(SIGNAL_CATCHER_THREAD_NAME, threadName , sizeof(SIGNAL_CATCHER_THREAD_NAME)-1) != 0) {
-            continue;
-        }
-
-        if (firstSignalCatcherTid == -1) {
-            firstSignalCatcherTid = tid;
-        }
-
-        sigblk = 0;
-        char taskPath[128];
-        snprintf(taskPath, sizeof(taskPath), "/proc/%d/status", tid);
-
-        ScopedFileDescriptor fd(open(taskPath, O_RDONLY, 0));
-        LineReader lr(fd.get());
-        const char *line;
-        size_t len;
-        while (lr.getNextLine(&line, &len)) {
-            if (1 == sscanf(line, "SigBlk: %" SCNx64, &sigblk)) {
-                break;
+        struct dirent *dent;
+        pid_t tid;
+        while ((dent = readdir(taskDir)) != nullptr) {
+            tid = atoi(dent->d_name);
+            if (tid <= 0) {
+                continue;
             }
-            lr.popLine(len);
+
+            char threadName[1024];
+            char commFilePath[1024];
+            snprintf(commFilePath, sizeof(commFilePath), "/proc/%d/task/%d/comm", getpid(), tid);
+
+            Support::readFileAsString(commFilePath, threadName, sizeof(threadName));
+
+            if (strncmp(SIGNAL_CATCHER_THREAD_NAME, threadName,
+                        sizeof(SIGNAL_CATCHER_THREAD_NAME) - 1) != 0) {
+                continue;
+            }
+
+            if (firstSignalCatcherTid == -1) {
+                firstSignalCatcherTid = tid;
+            }
+
+            sigblk = 0;
+            char taskPath[128];
+            snprintf(taskPath, sizeof(taskPath), "/proc/%d/status", tid);
+
+            ScopedFileDescriptor fd(open(taskPath, O_RDONLY, 0));
+            LineReader lr(fd.get());
+            const char *line;
+            size_t len;
+            while (lr.getNextLine(&line, &len)) {
+                if (1 == sscanf(line, "SigBlk: %" SCNx64, &sigblk)) {
+                    break;
+                }
+                lr.popLine(len);
+            }
+            if (SIGNAL_CATCHER_THREAD_SIGBLK != sigblk) {
+                continue;
+            }
+            signalCatcherTid = tid;
+            break;
         }
-        if (SIGNAL_CATCHER_THREAD_SIGBLK != sigblk) {
-            continue;
+        closedir(taskDir);
+
+        if (signalCatcherTid == -1) {
+            signalCatcherTid = firstSignalCatcherTid;
         }
-        signalCatcherTid = tid;
-        break;
-    }
-    closedir(taskDir);
-
-    if (signalCatcherTid == -1) {
-        signalCatcherTid = firstSignalCatcherTid;
-    }
-    return signalCatcherTid;
-}
-
-static void sendSigToSignalCatcher() {
-    int tid = getSignalCatcherThreadId();
-    syscall(SYS_tgkill, getpid(), tid, SIGQUIT);
-}
-
-static void *anrCallback(void* arg) {
-    anrDumpCallback();
-    if (strlen(mAnrTraceFile) > 0) {
-        hookAnrTraceWrite(false);
-    }
-    sendSigToSignalCatcher();
-    return nullptr;
-}
-
-static void *siUserCallback(void* arg) {
-    if (strlen(mPrintTraceFile) > 0) {
-        hookAnrTraceWrite(true);
+        return signalCatcherTid;
     }
 
-    sendSigToSignalCatcher();
-    return nullptr;
-}
+    static void sendSigToSignalCatcher() {
+        int tid = getSignalCatcherThreadId();
+        syscall(SYS_tgkill, getpid(), tid, SIGQUIT);
+    }
 
-void* AnrDumper::nativeBacktraceCallback(void* arg) {
-    nativeBacktraceDumpCallback();
-    restoreNativeBacktraceHandlersLocked();
-    sigval val;
-    val.sival_int = 1;
-
-    siginfo_t info;
-    memset(&info, 0, sizeof(siginfo_t));
-    info.si_signo = BIONIC_SIGNAL_DEBUGGER;
-    info.si_code = SI_QUEUE;
-    info.si_pid = getpid();
-    info.si_uid = getuid();
-    info.si_value = val;
-    syscall(SYS_rt_sigqueueinfo, getpid(), BIONIC_SIGNAL_DEBUGGER, &info);
-    sleep(NATIVE_DUMP_TIMEOUT);
-    installNativeBacktraceHandlersLocked();
-    return nullptr;
-}
-
-void AnrDumper::handleSignal(int sig, const siginfo_t *info, void *uc) {
-    int fromPid1 = info->_si_pad[3];
-    int fromPid2 = info->_si_pad[4];
-    int myPid = getpid();
-    bool fromMySelf = fromPid1 == myPid || fromPid2 == myPid;
-    if (sig == SIGQUIT) {
-        pthread_t thd;
-        if (!fromMySelf) {
-            pthread_create(&thd, nullptr, anrCallback, nullptr);
-        } else {
-            pthread_create(&thd, nullptr, siUserCallback, nullptr);
+    //捕获到SIGQUIT信号时调用，
+    static void *anrCallback(void *arg) {
+        //调用SignalAnrTracer.onANRDumped()
+        anrDumpCallback();
+        if (strlen(mAnrTraceFile) > 0) {
+            //hook write方法，将trace信息写入到指定文件中
+            hookAnrTraceWrite(false);
         }
-        pthread_detach(thd);
+        sendSigToSignalCatcher();
+        return nullptr;
     }
-}
 
+    static void *siUserCallback(void *arg) {
+        if (strlen(mPrintTraceFile) > 0) {
+            hookAnrTraceWrite(true);
+        }
 
-void AnrDumper::handleDebuggerSignal(int sig, const siginfo_t *info, void *uc) {
-    if (sig == BIONIC_SIGNAL_DEBUGGER) {
+        sendSigToSignalCatcher();
+        return nullptr;
+    }
+
+    void *AnrDumper::nativeBacktraceCallback(void *arg) {
+        nativeBacktraceDumpCallback();
+        restoreNativeBacktraceHandlersLocked();
+        sigval val;
+        val.sival_int = 1;
+
+        siginfo_t info;
+        memset(&info, 0, sizeof(siginfo_t));
+        info.si_signo = BIONIC_SIGNAL_DEBUGGER;
+        info.si_code = SI_QUEUE;
+        info.si_pid = getpid();
+        info.si_uid = getuid();
+        info.si_value = val;
+        syscall(SYS_rt_sigqueueinfo, getpid(), BIONIC_SIGNAL_DEBUGGER, &info);
+        sleep(NATIVE_DUMP_TIMEOUT);
+        installNativeBacktraceHandlersLocked();
+        return nullptr;
+    }
+
+//捕获到的SIGQUIT在这里处理
+    void AnrDumper::handleSignal(int sig, const siginfo_t *info, void *uc) {
         int fromPid1 = info->_si_pad[3];
         int fromPid2 = info->_si_pad[4];
         int myPid = getpid();
+        //判断是否是自身发出的信号
         bool fromMySelf = fromPid1 == myPid || fromPid2 == myPid;
-        if (!fromMySelf) {
+        if (sig == SIGQUIT) {
             pthread_t thd;
-            pthread_create(&thd, nullptr, nativeBacktraceCallback, nullptr);
+            if (!fromMySelf) {
+                pthread_create(&thd, nullptr, anrCallback, nullptr);
+            } else {
+                pthread_create(&thd, nullptr, siUserCallback, nullptr);
+            }
             pthread_detach(thd);
         }
     }
-}
 
-static void *anr_trace_callback(void* args) {
-    anrDumpTraceCallback();
-    return nullptr;
-}
+//调试信号和栈回溯相关
+    void AnrDumper::handleDebuggerSignal(int sig, const siginfo_t *info, void *uc) {
+        if (sig == BIONIC_SIGNAL_DEBUGGER) {
+            int fromPid1 = info->_si_pad[3];
+            int fromPid2 = info->_si_pad[4];
+            int myPid = getpid();
+            bool fromMySelf = fromPid1 == myPid || fromPid2 == myPid;
+            if (!fromMySelf) {
+                pthread_t thd;
+                pthread_create(&thd, nullptr, nativeBacktraceCallback, nullptr);
+                pthread_detach(thd);
+            }
+        }
+    }
 
-static void *print_trace_callback(void* args) {
-    printTraceCallback();
-    return nullptr;
-}
+    static void *anr_trace_callback(void *args) {
+        anrDumpTraceCallback();
+        return nullptr;
+    }
+
+    static void *print_trace_callback(void *args) {
+        printTraceCallback();
+        return nullptr;
+    }
 
 
-AnrDumper::~AnrDumper() {
-    pthread_sigmask(SIG_SETMASK, &old_sigSet, nullptr);
-}
+    AnrDumper::~AnrDumper() {
+        pthread_sigmask(SIG_SETMASK, &old_sigSet, nullptr);
+    }
 
 }   // namespace MatrixTracer

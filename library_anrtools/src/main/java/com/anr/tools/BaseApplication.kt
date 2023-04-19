@@ -1,13 +1,11 @@
 package com.anr.tools
 
-import android.app.ActivityManager
-import android.app.ActivityManager.ProcessErrorStateInfo
 import android.app.Application
 import android.content.Context
-import android.os.Process
+import android.os.Environment
 import android.os.SystemClock
 import com.anr.tools.util.LoggerUtils
-import com.tencent.matrix.AppActiveMatrixDelegate
+import com.anr.tools.util.saveFile
 import com.tencent.matrix.Matrix
 import com.tencent.matrix.plugin.Plugin
 import com.tencent.matrix.plugin.PluginListener
@@ -16,14 +14,20 @@ import com.tencent.matrix.trace.TracePlugin
 import com.tencent.matrix.trace.config.SharePluginInfo
 import com.tencent.matrix.trace.config.TraceConfig
 import com.tencent.matrix.trace.constants.Constants
-import org.json.JSONException
-import java.util.logging.Logger
 
 open class BaseApplication : Application() {
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
         context = base
+
+        val externalStorageAvailable =
+            Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
+        cachePath = if (externalStorageAvailable) {
+            context.externalCacheDir?.path ?: context.cacheDir.path
+        } else {
+            context.cacheDir.path
+        }
     }
 
     override fun onCreate() {
@@ -31,8 +35,7 @@ open class BaseApplication : Application() {
 
 
         val config = TraceConfig.Builder()
-            .anrTracePath(cacheDir.path + "/trace.txt")
-            .printTracePath(cacheDir.path + "/print_trace.txt")
+            .anrTracePath("$cachePath/trace.txt")
             .enableSignalAnrTrace(true)
             .build()
         val tracePlugin = TracePlugin(config)
@@ -53,37 +56,28 @@ open class BaseApplication : Application() {
         override fun onDestroy(plugin: Plugin) {}
         override fun onReportIssue(issue: Issue) {
             LoggerUtils.LOGV("issue  = $issue")
-            try {
-                if (issue.content
-                        .get(SharePluginInfo.ISSUE_STACK_TYPE) == Constants.Type.SIGNAL_ANR
-                ) {
-                    val procs =
-                        (context.getSystemService(ACTIVITY_SERVICE) as ActivityManager).processesInErrorState
-                    for (proc in procs) {
-                        if (proc.uid != Process.myUid()
-                            && proc.condition == ProcessErrorStateInfo.NOT_RESPONDING
-                        ) {
-                            LoggerUtils.LOGV("maybe received other apps ANR signal")
-                            break
-                        }
-                        if (proc.pid != Process.myPid()) continue
-                        if (proc.condition != ProcessErrorStateInfo.NOT_RESPONDING) {
-                            continue
-                        }
-                        LoggerUtils.LOGV("error sate longMsg = %s", proc.longMsg)
-                    }
-                    val scene = AppActiveMatrixDelegate.INSTANCE.getVisibleScene()
-                    LoggerUtils.LOGV("sence = %s", scene)
-//                            LoggerUtils.LOGV("start long =" + (SystemClock.elapsedRealtime() - com.tencent.matrix.test.memoryhook.App.startTime)
-
-                }
-            } catch (e: JSONException) {
-                throw RuntimeException(e)
+            val type = issue.content.get(SharePluginInfo.ISSUE_STACK_TYPE)
+            if (type == Constants.Type.SIGNAL_ANR
+                || type == Constants.Type.SIGNAL_ANR_NATIVE_BACKTRACE //__SIGRTMIN + 3 信号对应的值
+//                || type == Constants.Type.ANR
+            ) {
+                USE_TIME = (SystemClock.elapsedRealtime() - START_TIME) / 1000
+                MainLooperMonitor.getInstance().saveMessage()
+                issue.saveFile("$cachePath/anr_info.txt")
+                LoggerUtils.LOGV("消息队列信息 : ${cachePath}/block_anr")
+                LoggerUtils.LOGV("trace文件 : $cachePath/trace.txt")
+                LoggerUtils.LOGV("anr_info文件 : $cachePath/anr_info.txt")
             }
         }
     }
 
     companion object {
         lateinit var context: Context
+
+        lateinit var cachePath: String
+
+        val START_TIME = SystemClock.elapsedRealtime()
+
+        var USE_TIME = -1L
     }
 }

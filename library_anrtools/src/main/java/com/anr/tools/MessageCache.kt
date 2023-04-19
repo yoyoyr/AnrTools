@@ -1,7 +1,6 @@
 package com.anr.tools
 
-import android.os.Environment
-import com.anr.tools.BaseApplication.Companion.context
+import com.anr.tools.BaseApplication.Companion.cachePath
 import com.anr.tools.bean.PolMessageBean
 import com.anr.tools.bean.MessageListBean
 import com.anr.tools.bean.ScheduledBean
@@ -23,13 +22,6 @@ class MessageCache private constructor() {
     private var currentSize = 0
 
     init {
-        val externalStorageAvailable =
-            Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
-        val cachePath = if (externalStorageAvailable) {
-            context.externalCacheDir?.path ?: context.cacheDir.path
-        } else {
-            context.cacheDir.path
-        }
         diskCacheDir = File(cachePath + File.separator + "block_anr")
         if (!diskCacheDir.exists()) {
             diskCacheDir.mkdir()

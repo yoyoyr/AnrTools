@@ -51,4 +51,7 @@ public class SharePluginInfo {
     public static final String STAGE_APPLICATION_CREATE_SCENE = "application_create_scene";
     public static final String STAGE_FIRST_ACTIVITY_CREATE = "first_activity_create";
     public static final String STAGE_STARTUP_DURATION = "startup_duration";
+
+    public static final String PROCESS_ERROR_STATE_INFO = "process_error_state_info";
+    public static final String ANR_MESSAGE = "anr_message";
 }

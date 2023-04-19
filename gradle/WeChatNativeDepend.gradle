@@ -55,6 +55,7 @@ project.ext.ATTR_ARTIFACT_TYPE = Attribute.of('artifactType', String)
 //  DSL Definitions
 //////////////////////////////////////////////////////////////
 
+//处理native .h文件的依赖问题。
 class ExportedHeadersExtension {
     Set<HeaderFilter> headerFilters = []
 
@@ -77,6 +78,7 @@ class ExportedHeadersExtension {
     }
 }
 
+//存储 哪些文件从哪里移动到哪里的信息
 class HeaderFilter {
     String dirPath
     Set<String> includePatterns = []
@@ -165,14 +167,19 @@ def handleAndroidApplication() {
 }
 
 def handleAndroidLibrary() {
+    //关联externalNativeBuild和exportHeaders，并为每一个产物和变体创建exportHeaders
     mountExtension()
+    //往cmake文件中注入EXT_DEP和-DEXT_DEP两个变量以及对应的值
     injectNativeDependenciesPath()
+    //这里没有执行
     injectBuildInfoModule()
+    //编写intermediates/native_deps/extracted_native_dependencies/include/build-info/build-info.h文件
     generateBuildInfoHeader(true)
 
     def libVariants = project.android.libraryVariants
     project.afterEvaluate {
         libVariants.each { variant ->
+            //发布一些native产物
             exposeNativeArtifacts(variant)
         }
     }
@@ -197,6 +204,7 @@ def handleAndroidLibrary() {
                 mountCopyNativePrebuiltsAction(variant)
                 anchorTask.doFirst generateBeforeAction
                 anchorTask.doLast {
+                    //在intermediates/native_deps/exported_native_artifacts/debug/include文件下，将exportHeaders配置的文件复制到目的文件夹
                     copyExportedHeaders(variant)
                 }
             } else {
@@ -240,7 +248,10 @@ def getExtractedNativeDependenciesDir() {
 }
 
 def copyExportedHeaders(targetVariant) {
+    //intermediates/native_deps/exported_native_artifacts/debug/
     def exportedArtifactsDir = getExportedNativeArtifactsDir(targetVariant)
+
+    //intermediates/native_deps/exported_native_artifacts/debug/include
     def exportedHeadersDir = new File(exportedArtifactsDir, HEADERS_DIR_NAME)
     if (!exportedHeadersDir.exists()) {
         exportedHeadersDir.mkdirs()
@@ -325,8 +336,11 @@ def exposeNativeArtifacts(targetVariant) {
 }
 
 def injectNativeDependenciesPath() {
+
+    //intermediates/native_deps/extracted_native_dependencies
     def extractedNativeDepsDir = getExtractedNativeDependenciesDir()
 
+    //往cmake文件中注入EXT_DEP和-DEXT_DEP两个变量以及对应的值
     def ndkBuildOpt = project.android.defaultConfig.externalNativeBuild.ndkBuild
     ndkBuildOpt.getArguments().add('EXT_DEP=' + extractedNativeDepsDir.absolutePath)
 
@@ -381,6 +395,7 @@ def generateBuildInfoHeader(boolean stubOnly) {
 }
 
 def extractNativeDependencies(targetVariants) {
+    //intermediates/native_deps/extracted_native_dependencies
     def extractedNativeDepsDir = getExtractedNativeDependenciesDir()
 
     targetVariants.each { targetVariant ->

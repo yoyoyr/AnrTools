@@ -1,7 +1,15 @@
 package com.anr.tools.util
 
+import android.os.SystemClock
+import com.anr.tools.BaseApplication
+import com.anr.tools.BaseApplication.Companion.START_TIME
 import com.anr.tools.bean.MessageBean
+import com.tencent.matrix.report.Issue
+import com.tencent.matrix.trace.config.SharePluginInfo
+import com.tencent.matrix.util.DeviceUtil
 import java.io.File
+import java.io.FileWriter
+import java.io.IOException
 
 
 /**
@@ -59,6 +67,52 @@ fun File.deleteFile(): Boolean {
 fun AutoCloseable.closeStream() {
     try {
         close()
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
+fun Issue.saveFile(fileName: String) {
+
+    try {
+        // 创建 FileWriter 对象
+        val fileWriter = FileWriter(fileName)
+
+        // 循环写入每一行内容
+
+        fileWriter.write("应用使用时长 : ${BaseApplication.USE_TIME}s")
+        fileWriter.write(System.lineSeparator())
+
+        content?.run {
+            get(SharePluginInfo.ISSUE_PROCESS_FOREGROUND)?.run {
+                fileWriter.write("应用是否处于前台 : $this")
+                fileWriter.write(System.lineSeparator())
+            }
+            get(DeviceUtil.DEVICE_MACHINE)?.run {
+                fileWriter.write("机器等级 : $this")
+                fileWriter.write(System.lineSeparator())
+            }
+            get(SharePluginInfo.ISSUE_SCENE)?.run {
+                fileWriter.write("用户的操作路径  :   $this")
+                fileWriter.write(System.lineSeparator())
+            }
+            get(SharePluginInfo.ANR_MESSAGE)?.run {
+                fileWriter.write("发生anr的消息  :   $this")
+                fileWriter.write(System.lineSeparator())
+
+            }
+            get(SharePluginInfo.ISSUE_THREAD_STACK)?.run {
+                fileWriter.write("触发anr的堆栈  :   $this")
+                fileWriter.write(System.lineSeparator())
+            }
+            get(SharePluginInfo.PROCESS_ERROR_STATE_INFO)?.run {
+                fileWriter.write("$this")
+                fileWriter.write(System.lineSeparator())
+            }
+        }
+
+        // 关闭文件
+        fileWriter.close()
     } catch (e: Exception) {
         e.printStackTrace()
     }

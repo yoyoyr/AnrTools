@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.bigAnr).setOnClickListener {
             mainHandler.post(Runnable {
-                SystemClock.sleep(1000)
+                SystemClock.sleep(10000)
                 LoggerUtils.LOGV("send message...")
             })
         }
@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.manyAnr).setOnClickListener {
 
             //发送多个不是非常严重耗时消息，模拟消息队列繁忙
-            for (i in 1..10) {
+            for (i in 1..20) {
                 mainHandler.post(Runnable { //500ms
                     SystemClock.sleep(500)
                     LoggerUtils.LOGV("send message...")

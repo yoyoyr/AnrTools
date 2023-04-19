@@ -51,9 +51,9 @@ public class DeviceUtil {
     private static LEVEL sLevelCache = null;
 
     public static final String DEVICE_MACHINE = "machine";
-    private static final String DEVICE_MEMORY_FREE = "mem_free";
-    private static final String DEVICE_MEMORY = "mem";
-    private static final String DEVICE_CPU = "cpu_app";
+    public static final String DEVICE_MEMORY_FREE = "mem_free";
+    public static final String DEVICE_MEMORY = "mem";
+    public static final String DEVICE_CPU = "cpu_app";
 
     private static long sTotalMemory = 0;
     private static long sLowMemoryThresold = 0;

@@ -88,6 +88,8 @@ public class SignalAnrTracer extends Tracer {
     private static long lastReportedTimeStamp = 0;
     private static long onAnrDumpedTimeStamp = 0;
 
+    private static ActivityManager.ProcessErrorStateInfo processErrorStateInfo;
+
     static {
         System.loadLibrary("trace-canary");
     }
@@ -336,17 +338,19 @@ public class SignalAnrTracer extends Tracer {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private static void confirmRealAnr(final boolean isSigQuit) {
         MatrixLog.i(TAG, "confirmRealAnr, isSigQuit = " + isSigQuit);
-        boolean needReport = isMainThreadBlocked();
-        if (needReport) {
-            report(false, isSigQuit);
-        } else {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    checkErrorStateCycle(isSigQuit);
-                }
-            }, CHECK_ANR_STATE_THREAD_NAME).start();
-        }
+        //根据疑似anr消息的when字段和当前应用处于前后台情况判断是否发生anr
+//        boolean needReport = isMainThreadBlocked();
+//        if (needReport) {
+//            report(false, isSigQuit);
+//        } else {
+        //为了获取到am.getProcessesInErrorState()信息
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                checkErrorStateCycle(isSigQuit);
+            }
+        }, CHECK_ANR_STATE_THREAD_NAME).start();
+//        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -376,6 +380,7 @@ public class SignalAnrTracer extends Tracer {
         }
     }
 
+    //anr写入
     @Keep
     private static void onANRDumpTrace() {
         try {
@@ -428,6 +433,7 @@ public class SignalAnrTracer extends Tracer {
 
     private static void report(boolean fromProcessErrorState, boolean isSigQuit) {
         try {
+
             if (sSignalAnrDetectedListener != null) {
                 if (isSigQuit) {
                     sSignalAnrDetectedListener.onAnrDetected(stackTrace, anrMessageString, anrMessageWhen, fromProcessErrorState, cgroup);
@@ -454,7 +460,15 @@ public class SignalAnrTracer extends Tracer {
                 jsonObject.put(SharePluginInfo.ISSUE_THREAD_STACK, nativeBacktraceStackTrace);
             }
             jsonObject.put(SharePluginInfo.ISSUE_SCENE, scene);
+
+            if (processErrorStateInfo != null) {
+                jsonObject.put(SharePluginInfo.PROCESS_ERROR_STATE_INFO, processErrorStateInfo.longMsg);
+            } else {
+                jsonObject.put(SharePluginInfo.PROCESS_ERROR_STATE_INFO, "");
+            }
+
             jsonObject.put(SharePluginInfo.ISSUE_PROCESS_FOREGROUND, currentForeground);
+            jsonObject.put(SharePluginInfo.ANR_MESSAGE, anrMessageString);
 
             Issue issue = new Issue();
             issue.setTag(SharePluginInfo.TAG_PLUGIN_EVIL_METHOD);
@@ -549,7 +563,8 @@ public class SignalAnrTracer extends Tracer {
                     continue;
                 }
 
-                MatrixLog.i(TAG, "error sate longMsg = %s", proc.longMsg);
+                processErrorStateInfo = proc;
+                MatrixLog.i(TAG, "error sate longMsg = %s", processErrorStateInfo.longMsg);
 
                 return true;
             }
