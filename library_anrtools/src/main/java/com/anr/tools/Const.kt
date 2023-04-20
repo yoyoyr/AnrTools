@@ -5,10 +5,10 @@ import java.util.concurrent.Executors
 
 
 //保存5分钟前的消息
-const val MESSAGE_CACHE_TIME = 1 * 30 * 1000L
+const val MESSAGE_CACHE_TIME = 3 * 60 * 1000L
 
-//指定目录下最多能够存储多少个文件
-const val maxSize = 20
+//当某条消息处理时间超过WARN_TIME时，弹窗提示耗时且记录消息
+const val WARN_TIME = 1000L
 
 
 /**
@@ -28,3 +28,6 @@ val IO_EXECUTOR = Executors.newFixedThreadPool(3)
 
 //当前分析的polMessage对象
 var MSG_INFO: PolMessageBean? = null
+
+//指定目录下最多能够存储多少个文件
+const val maxSize = 20

@@ -37,6 +37,7 @@ import com.tencent.matrix.trace.TracePlugin;
 import com.tencent.matrix.trace.config.SharePluginInfo;
 import com.tencent.matrix.trace.config.TraceConfig;
 import com.tencent.matrix.trace.constants.Constants;
+import com.tencent.matrix.trace.listeners.ISigQuitListener;
 import com.tencent.matrix.trace.util.AppForegroundUtil;
 import com.tencent.matrix.trace.util.Utils;
 import com.tencent.matrix.util.DeviceUtil;
@@ -58,6 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -88,7 +90,16 @@ public class SignalAnrTracer extends Tracer {
     private static long lastReportedTimeStamp = 0;
     private static long onAnrDumpedTimeStamp = 0;
 
+    private static ISigQuitListener sigQuitListener;
+
     private static ActivityManager.ProcessErrorStateInfo processErrorStateInfo;
+
+    //是否正在处理anr，避免多次回调
+    private static volatile boolean isDoingAnr = false;
+
+    public static void setSigQuitListener(ISigQuitListener sigQuitListener) {
+        SignalAnrTracer.sigQuitListener = sigQuitListener;
+    }
 
     static {
         System.loadLibrary("trace-canary");
@@ -338,24 +349,30 @@ public class SignalAnrTracer extends Tracer {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private static void confirmRealAnr(final boolean isSigQuit) {
         MatrixLog.i(TAG, "confirmRealAnr, isSigQuit = " + isSigQuit);
+        if (sigQuitListener != null) {
+            sigQuitListener.onSigQuit();
+        }
         //根据疑似anr消息的when字段和当前应用处于前后台情况判断是否发生anr
 //        boolean needReport = isMainThreadBlocked();
 //        if (needReport) {
 //            report(false, isSigQuit);
 //        } else {
         //为了获取到am.getProcessesInErrorState()信息
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                checkErrorStateCycle(isSigQuit);
-            }
-        }, CHECK_ANR_STATE_THREAD_NAME).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+        checkErrorStateCycle(isSigQuit);
+//    }
+//        }, CHECK_ANR_STATE_THREAD_NAME).start();
 //        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Keep
     private synchronized static void onANRDumped() {
+        if (isDoingAnr)
+            return;
+        isDoingAnr = true;
         final CountDownLatch anrDumpLatch = new CountDownLatch(1);
         new Thread(new Runnable() {
             @Override
@@ -363,11 +380,12 @@ public class SignalAnrTracer extends Tracer {
                 onAnrDumpedTimeStamp = System.currentTimeMillis();
                 MatrixLog.i(TAG, "onANRDumped");
                 stackTrace = Utils.getMainThreadJavaStackTrace();
-                MatrixLog.i(TAG, "onANRDumped, stackTrace = %s, duration = %d", stackTrace, (System.currentTimeMillis() - onAnrDumpedTimeStamp));
+                getAnrMsg();
+//                MatrixLog.i(TAG, "onANRDumped, stackTrace = %s, duration = %d", stackTrace, (System.currentTimeMillis() - onAnrDumpedTimeStamp));
                 cgroup = readCgroup();
-                MatrixLog.i(TAG, "onANRDumped, read cgroup duration = %d", (System.currentTimeMillis() - onAnrDumpedTimeStamp));
+//                MatrixLog.i(TAG, "onANRDumped, read cgroup duration = %d", (System.currentTimeMillis() - onAnrDumpedTimeStamp));
                 currentForeground = AppForegroundUtil.isInterestingToUser();
-                MatrixLog.i(TAG, "onANRDumped, isInterestingToUser duration = %d", (System.currentTimeMillis() - onAnrDumpedTimeStamp));
+//                MatrixLog.i(TAG, "onANRDumped, isInterestingToUser duration = %d", (System.currentTimeMillis() - onAnrDumpedTimeStamp));
                 confirmRealAnr(true);
                 anrDumpLatch.countDown();
             }
@@ -389,7 +407,7 @@ public class SignalAnrTracer extends Tracer {
                 SimpleDeadLockDetector detector = new SimpleDeadLockDetector();
                 while ((line = reader.readLine()) != null) {
                     detector.parseLine(line);
-                    MatrixLog.i(TAG, line);
+//                    MatrixLog.i(TAG, line);
                 }
                 if (sSignalAnrDetectedListener != null) {
                     if (detector.hasDeadLock()) {
@@ -468,18 +486,21 @@ public class SignalAnrTracer extends Tracer {
             }
 
             jsonObject.put(SharePluginInfo.ISSUE_PROCESS_FOREGROUND, currentForeground);
-            jsonObject.put(SharePluginInfo.ANR_MESSAGE, anrMessageString);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                jsonObject.put(SharePluginInfo.ANR_MESSAGE, anrMessageString);
+            }
 
             Issue issue = new Issue();
             issue.setTag(SharePluginInfo.TAG_PLUGIN_EVIL_METHOD);
             issue.setContent(jsonObject);
             plugin.onDetectIssue(issue);
-            MatrixLog.e(TAG, "happens real ANR : %s ", jsonObject.toString());
+//            MatrixLog.e(TAG, "happens real ANR : %s ", jsonObject.toString());
 
         } catch (JSONException e) {
             MatrixLog.e(TAG, "[JSONException error: %s", e);
         } finally {
             lastReportedTimeStamp = System.currentTimeMillis();
+//            isDoingAnr = false;
         }
     }
 
@@ -514,13 +535,30 @@ public class SignalAnrTracer extends Tracer {
         return false;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private static void getAnrMsg() {
+        try {
+            MessageQueue mainQueue = Looper.getMainLooper().getQueue();
+            Field field = mainQueue.getClass().getDeclaredField("mMessages");
+            field.setAccessible(true);
+            final Message mMessage = (Message) field.get(mainQueue);
+            if (mMessage != null) {
+                anrMessageString = mMessage.toString();
+            }
+        } catch (Exception e) {
+            return;
+        }
+        return;
+    }
+
 
     private static void checkErrorStateCycle(boolean isSigQuit) {
         int checkErrorStateCount = 0;
+        boolean myAnr = false;
         while (checkErrorStateCount < CHECK_ERROR_STATE_COUNT) {
             try {
                 checkErrorStateCount++;
-                boolean myAnr = checkErrorState();
+                myAnr = checkErrorState();
                 if (myAnr) {
                     report(true, isSigQuit);
                     break;
@@ -531,6 +569,11 @@ public class SignalAnrTracer extends Tracer {
                 MatrixLog.e(TAG, "checkErrorStateCycle error, e : " + t.getMessage());
                 break;
             }
+        }
+
+        //如果超过时间都没有拿到am的错误消息，则上报
+        if (checkErrorStateCount >= CHECK_ERROR_STATE_COUNT && !myAnr) {
+            report(true, isSigQuit);
         }
     }
 
@@ -564,7 +607,7 @@ public class SignalAnrTracer extends Tracer {
                 }
 
                 processErrorStateInfo = proc;
-                MatrixLog.i(TAG, "error sate longMsg = %s", processErrorStateInfo.longMsg);
+//                MatrixLog.i(TAG, "error sate longMsg = %s", processErrorStateInfo.longMsg);
 
                 return true;
             }

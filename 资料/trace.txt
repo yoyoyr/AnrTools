@@ -216,6 +216,31 @@ ProfileSaver total_number_of_wake_ups=14
 
 suspend all histogram:	Sum: 2.411ms 99% C.I. 0.160us-261.760us Avg: 29.402us Max: 283us
 DALVIK THREADS (32):
+
+"main" prio=5 tid=1 Native
+  | group="main" sCount=1 ucsCount=0 flags=1 obj=0x726d23d8 self=0xb4000077b013cc00
+  | sysTid=10864 nice=-10 cgrp=top-app sched=0/0 handle=0x77b17934f8
+  | state=S schedstat=( 15155462678 535645898 7160 ) utm=1391 stm=124 core=7 HZ=100
+  | stack=0x7fd31dd000-0x7fd31df000 stackSize=8188KB
+  | held mutexes=
+  //堆栈是在anr之后捕获的，时机不确定，因此此时大概率不是第一现场
+  native: #00 pc 0000000000086f90  /apex/com.android.runtime/lib64/bionic/libc.so (syscall+32)
+  native: #01 pc 000000000028dc74  /apex/com.android.art/lib64/libart.so (art::ConditionVariable::WaitHoldingLocks(art::Thread*)+152)
+  native: #02 pc 000000000042fd3c  /apex/com.android.art/lib64/libart.so (art::(anonymous namespace)::CheckJNI::FindClass(_JNIEnv*, char const*) (.llvm.3094671572786334925)+508)
+  native: #03 pc 000000000011aae0  /system/lib64/libandroid_runtime.so (android::NativeDisplayEventReceiver::dispatchVsync(long, android::PhysicalDisplayId, unsigned int, android::VsyncEventData)+80)
+  native: #04 pc 00000000000af42c  /system/lib64/libgui.so (android::DisplayEventDispatcher::handleEvent(int, int, void*)+204)
+  native: #05 pc 0000000000018184  /system/lib64/libutils.so (android::Looper::pollInner(int)+916)
+  native: #06 pc 0000000000017d84  /system/lib64/libutils.so (android::Looper::pollOnce(int, int*, int*, void**)+116)
+  native: #07 pc 00000000001545b0  /system/lib64/libandroid_runtime.so (android::android_os_MessageQueue_nativePollOnce(_JNIEnv*, _jobject*, long, int)+48)
+  at android.os.MessageQueue.nativePollOnce(Native method)
+  at android.os.MessageQueue.next(MessageQueue.java:337)
+  at android.os.Looper.loopOnce(Looper.java:168)
+  at android.os.Looper.loop(Looper.java:299)
+  at android.app.ActivityThread.main(ActivityThread.java:8118)
+  at java.lang.reflect.Method.invoke(Native method)
+  at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:556)
+  at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1045)
+
 "Signal Catcher" daemon prio=10 tid=4 Runnable
   | group="system" sCount=0 ucsCount=0 flags=0 obj=0x12e00248 self=0xb4000076ebc12800
   | sysTid=10879 nice=-20 cgrp=top-app sched=0/0 handle=0x76ec32acb0
@@ -234,29 +259,6 @@ DALVIK THREADS (32):
   native: #09 pc 00000000000efb14  /apex/com.android.runtime/lib64/bionic/libc.so (__pthread_start(void*)+264)
   native: #10 pc 000000000008c35c  /apex/com.android.runtime/lib64/bionic/libc.so (__start_thread+68)
   (no managed stack frames)
-
-"main" prio=5 tid=1 Native
-  | group="main" sCount=1 ucsCount=0 flags=1 obj=0x726d23d8 self=0xb4000077b013cc00
-  | sysTid=10864 nice=-10 cgrp=top-app sched=0/0 handle=0x77b17934f8
-  | state=S schedstat=( 15155462678 535645898 7160 ) utm=1391 stm=124 core=7 HZ=100
-  | stack=0x7fd31dd000-0x7fd31df000 stackSize=8188KB
-  | held mutexes=
-  native: #00 pc 0000000000086f90  /apex/com.android.runtime/lib64/bionic/libc.so (syscall+32)
-  native: #01 pc 000000000028dc74  /apex/com.android.art/lib64/libart.so (art::ConditionVariable::WaitHoldingLocks(art::Thread*)+152)
-  native: #02 pc 000000000042fd3c  /apex/com.android.art/lib64/libart.so (art::(anonymous namespace)::CheckJNI::FindClass(_JNIEnv*, char const*) (.llvm.3094671572786334925)+508)
-  native: #03 pc 000000000011aae0  /system/lib64/libandroid_runtime.so (android::NativeDisplayEventReceiver::dispatchVsync(long, android::PhysicalDisplayId, unsigned int, android::VsyncEventData)+80)
-  native: #04 pc 00000000000af42c  /system/lib64/libgui.so (android::DisplayEventDispatcher::handleEvent(int, int, void*)+204)
-  native: #05 pc 0000000000018184  /system/lib64/libutils.so (android::Looper::pollInner(int)+916)
-  native: #06 pc 0000000000017d84  /system/lib64/libutils.so (android::Looper::pollOnce(int, int*, int*, void**)+116)
-  native: #07 pc 00000000001545b0  /system/lib64/libandroid_runtime.so (android::android_os_MessageQueue_nativePollOnce(_JNIEnv*, _jobject*, long, int)+48)
-  at android.os.MessageQueue.nativePollOnce(Native method)
-  at android.os.MessageQueue.next(MessageQueue.java:337)
-  at android.os.Looper.loopOnce(Looper.java:168)
-  at android.os.Looper.loop(Looper.java:299)
-  at android.app.ActivityThread.main(ActivityThread.java:8118)
-  at java.lang.reflect.Method.invoke(Native method)
-  at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:556)
-  at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1045)
 
 "perfetto_hprof_listener" prio=10 tid=7 Native (still starting up)
   | group="" sCount=1 ucsCount=0 flags=1 obj=0x0 self=0xb4000076f916e800

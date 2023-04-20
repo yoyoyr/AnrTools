@@ -72,12 +72,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.saveMsg).setOnClickListener {
-            if (SystemClock.elapsedRealtime() - clickTime < 100) {
-                return@setOnClickListener
-            }
-            Toast.makeText(it.context, "保存成功", Toast.LENGTH_LONG).show()
-            MainLooperMonitor.getInstance().saveMessage()
-            clickTime = SystemClock.elapsedRealtime()
+//            if (SystemClock.elapsedRealtime() - clickTime < 100) {
+//                return@setOnClickListener
+//            }
+//            Toast.makeText(it.context, "保存成功", Toast.LENGTH_LONG).show()
+////            MainLooperMonitor.getInstance().saveMessage()
+//            clickTime = SystemClock.elapsedRealtime()
         }
     }
 

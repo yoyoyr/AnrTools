@@ -1,12 +1,10 @@
 package com.anr.tools
 
-import com.anr.tools.BaseApplication.Companion.cachePath
 import com.anr.tools.bean.PolMessageBean
 import com.anr.tools.bean.MessageListBean
 import com.anr.tools.bean.ScheduledBean
 import com.anr.tools.util.LoggerUtils
 import com.anr.tools.util.closeStream
-import com.anr.tools.util.deleteFile
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -16,17 +14,7 @@ class MessageCache private constructor() {
 
     private var anrInfo = PolMessageBean()
     private val sFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS")
-    private val hFormat = SimpleDateFormat("HH:mm:ss")
-    private val diskCacheDir: File
-
-    private var currentSize = 0
-
-    init {
-        diskCacheDir = File(cachePath + File.separator + "block_anr")
-        if (!diskCacheDir.exists()) {
-            diskCacheDir.mkdir()
-        }
-    }
+    private val hFormat = SimpleDateFormat("HH:mm:ss:SSS")
 
     fun onMsgSample(baseTime: Long, msg: MessageListBean) {
         msg.messageCreateTime = hFormat.format(System.currentTimeMillis())
@@ -46,18 +34,21 @@ class MessageCache private constructor() {
     }
 
 
-    fun saveMessage() {
+    fun saveMessage():String {
         val temp = anrInfo
         val path = sFormat.format(System.currentTimeMillis())
         temp.markTime = path
         IO_EXECUTOR.execute {
-            cacheData(temp.markTime, temp)
+            cacheData(temp)
         }
+
+        return anrInfo.messageQueueSample.toString()
     }
 
-    private fun cacheData(path: String, polMessageBean: PolMessageBean) {
+
+    private fun cacheData(polMessageBean: PolMessageBean) {
         //如果文件不存在就创建文件
-        val file = File(diskCacheDir.path + File.separator + path)
+        val file = File(BaseApplication.polMessagePath)
         if (!file.exists()) {
             file.createNewFile()
         }
@@ -72,40 +63,29 @@ class MessageCache private constructor() {
         } finally {
             fos?.closeStream()
         }
-        currentSize =
-            if (diskCacheDir.listFiles() == null) 0 else diskCacheDir.listFiles().size
-        if (currentSize > maxSize) {
-            val files = diskCacheDir.listFiles()
-            Arrays.sort(files) { o1, o2 -> o1.name.compareTo(o2.name) }
-            //把最小的移除掉
-            LoggerUtils.LOGV("removeLastFile file name: " + files[0].name)
-            files[0].deleteFile()
-        }
     }
 
     fun restoreData(): List<PolMessageBean> {
         val result: MutableList<PolMessageBean> = ArrayList()
-        val files = diskCacheDir.listFiles() ?: return result
-        for (file in files) {
-            var ois: ObjectInputStream? = null
-            try {
-                //获取输入流
-                ois = ObjectInputStream(FileInputStream(file))
-                ois.run {
-                    readObject().run {
-                        if (this is PolMessageBean) {
-                            result.add(this)
-                        }
+        val file = File(BaseApplication.polMessagePath)
+        var ois: ObjectInputStream? = null
+        try {
+            //获取输入流
+            ois = ObjectInputStream(FileInputStream(file))
+            ois.run {
+                readObject().run {
+                    if (this is PolMessageBean) {
+                        result.add(this)
                     }
                 }
-            } catch (e: Exception) {
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                ois?.close()
+            } catch (e: IOException) {
                 e.printStackTrace()
-            } finally {
-                try {
-                    ois?.close()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
             }
         }
         return result

@@ -16,6 +16,9 @@ class MainLooperMonitor private constructor() : Printer {
     @Volatile
     private var start = false
 
+    @Volatile
+    private var isSaveMessage = false
+
     //每一帧的时间
     private val noInit = -1L
 
@@ -102,9 +105,7 @@ class MainLooperMonitor private constructor() : Printer {
 
     //将限定时间段的消息保存到文件中
     fun saveMessage() {
-        //获取当前消息队列的情况
-        Looper.getMainLooper().dump(MessageQueuePrint(), "\n        ")
-        MessageCache.getInstance().saveMessage()
+        isSaveMessage = true
     }
 
     private fun msgStart(msg: String) {
@@ -202,6 +203,12 @@ class MainLooperMonitor private constructor() : Printer {
                 this
             )
             polMessage = null
+        }
+        if (isSaveMessage) {
+            //获取当前消息队列的情况
+            Looper.getMainLooper().dump(MessageQueuePrint(), "\n        ")
+            MessageCache.getInstance().saveMessage()
+            isSaveMessage = false
         }
     }
 

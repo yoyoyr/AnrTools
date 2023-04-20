@@ -1,5 +1,8 @@
+@file:Suppress("UNNECESSARY_SAFE_CALL")
+
 package com.anr.tools.util
 
+import android.bluetooth.BluetoothClass.Device
 import android.os.SystemClock
 import com.anr.tools.BaseApplication
 import com.anr.tools.BaseApplication.Companion.START_TIME
@@ -72,13 +75,11 @@ fun AutoCloseable.closeStream() {
     }
 }
 
-fun Issue.saveFile(fileName: String) {
+fun Issue.saveFile() {
 
+    var fileWriter: FileWriter? = null
     try {
-        // 创建 FileWriter 对象
-        val fileWriter = FileWriter(fileName)
-
-        // 循环写入每一行内容
+        fileWriter = FileWriter(BaseApplication.anrInfoPath)
 
         fileWriter.write("应用使用时长 : ${BaseApplication.USE_TIME}s")
         fileWriter.write(System.lineSeparator())
@@ -92,6 +93,10 @@ fun Issue.saveFile(fileName: String) {
                 fileWriter.write("机器等级 : $this")
                 fileWriter.write(System.lineSeparator())
             }
+            fileWriter.write("java内存使用情况 : ${DeviceUtil.getDalvikHeap()}")
+            fileWriter.write(System.lineSeparator())
+            fileWriter.write("native内存使用情况 : ${DeviceUtil.getDalvikHeap()}")
+            fileWriter.write(System.lineSeparator())
             get(SharePluginInfo.ISSUE_SCENE)?.run {
                 fileWriter.write("用户的操作路径  :   $this")
                 fileWriter.write(System.lineSeparator())
@@ -111,9 +116,13 @@ fun Issue.saveFile(fileName: String) {
             }
         }
 
-        // 关闭文件
-        fileWriter.close()
     } catch (e: Exception) {
         e.printStackTrace()
+    } finally {
+        try {
+            fileWriter?.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
 }

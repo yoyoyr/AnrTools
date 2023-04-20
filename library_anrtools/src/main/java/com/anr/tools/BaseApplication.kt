@@ -14,8 +14,10 @@ import com.tencent.matrix.trace.TracePlugin
 import com.tencent.matrix.trace.config.SharePluginInfo
 import com.tencent.matrix.trace.config.TraceConfig
 import com.tencent.matrix.trace.constants.Constants
+import com.tencent.matrix.trace.tracer.SignalAnrTracer
 
 open class BaseApplication : Application() {
+
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
@@ -23,11 +25,15 @@ open class BaseApplication : Application() {
 
         val externalStorageAvailable =
             Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
-        cachePath = if (externalStorageAvailable) {
+        val cachePath = if (externalStorageAvailable) {
             context.externalCacheDir?.path ?: context.cacheDir.path
         } else {
             context.cacheDir.path
         }
+
+        tracePath = "${cachePath}/trace.txt"
+        anrInfoPath = "${cachePath}/anr_info.txt"
+        polMessagePath = "${cachePath}/pol_message.txt"
     }
 
     override fun onCreate() {
@@ -35,9 +41,12 @@ open class BaseApplication : Application() {
 
 
         val config = TraceConfig.Builder()
-            .anrTracePath("$cachePath/trace.txt")
+            .anrTracePath(tracePath)
             .enableSignalAnrTrace(true)
             .build()
+        SignalAnrTracer.setSigQuitListener {
+            IS_ANR = true
+        }
         val tracePlugin = TracePlugin(config)
 
         val matrix = Matrix.Builder(this)
@@ -55,29 +64,37 @@ open class BaseApplication : Application() {
         override fun onStop(plugin: Plugin) {}
         override fun onDestroy(plugin: Plugin) {}
         override fun onReportIssue(issue: Issue) {
-            LoggerUtils.LOGV("issue  = $issue")
+//            LoggerUtils.LOGV("issue  = $issue")
             val type = issue.content.get(SharePluginInfo.ISSUE_STACK_TYPE)
             if (type == Constants.Type.SIGNAL_ANR
                 || type == Constants.Type.SIGNAL_ANR_NATIVE_BACKTRACE //__SIGRTMIN + 3 信号对应的值
 //                || type == Constants.Type.ANR
             ) {
                 USE_TIME = (SystemClock.elapsedRealtime() - START_TIME) / 1000
+                issue.saveFile()
                 MainLooperMonitor.getInstance().saveMessage()
-                issue.saveFile("$cachePath/anr_info.txt")
-                LoggerUtils.LOGV("消息队列信息 : ${cachePath}/block_anr")
-                LoggerUtils.LOGV("trace文件 : $cachePath/trace.txt")
-                LoggerUtils.LOGV("anr_info文件 : $cachePath/anr_info.txt")
+                LoggerUtils.LOGV("消息队列信息 : $polMessagePath")
+                LoggerUtils.LOGV("trace文件 : $tracePath")
+                LoggerUtils.LOGV("anr_info文件 : $anrInfoPath")
             }
         }
     }
 
     companion object {
+
         lateinit var context: Context
 
-        lateinit var cachePath: String
+        lateinit var tracePath: String
+
+        lateinit var anrInfoPath: String
+
+        lateinit var polMessagePath: String
 
         val START_TIME = SystemClock.elapsedRealtime()
 
         var USE_TIME = -1L
+
+        @Volatile
+        var IS_ANR = false
     }
 }
