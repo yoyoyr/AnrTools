@@ -27,7 +27,7 @@ class AnalyzeMessageQueueDispatchViewHolder(itemView: View) :
         tvWallTime.text = "总耗时: " + messageInfo.wallTime
         tvCpuTime.text = "cpu耗时: " + messageInfo.cpuTime
         tvMsgCount.text = "消息个数: " + messageInfo.count
-        tvMsgTime.text = "消息创建时间: " + messageInfo.messageCreateTime
+        tvMsgTime.text = "消息类创建时间: " + messageInfo.messageCreateTime
     }
 
     private fun getItemBg(messageInfo: MessageListBean): Int {

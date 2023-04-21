@@ -12,7 +12,7 @@
         android:layout_height="44dp"
         android:gravity="center"
         android:textSize="@dimen/sp_18"
-        android:text="历史耗时消息" />
+        android:text="单条耗时消息" />
 
     <Button
         android:id="@+id/manyAnr"
@@ -23,11 +23,19 @@
         android:text="发送很多消息" />
 
     <Button
-        android:id="@+id/saveMsg"
+        android:id="@+id/warnMsg"
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:gravity="center"
         android:textSize="@dimen/sp_18"
-        android:text="保存msg" />
+        android:text="发送warn消息" />
+
+    <Button
+        android:id="@+id/activity"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:gravity="center"
+        android:textSize="@dimen/sp_18"
+        android:text="点击" />
 
 </LinearLayout>

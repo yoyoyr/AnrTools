@@ -4,11 +4,11 @@ import com.anr.tools.bean.PolMessageBean
 import java.util.concurrent.Executors
 
 
-//保存5分钟前的消息
+//保存1分钟前的消息
 const val MESSAGE_CACHE_TIME = 3 * 60 * 1000L
 
 //当某条消息处理时间超过WARN_TIME时，弹窗提示耗时且记录消息
-const val WARN_TIME = 1000L
+const val WARN_TIME = 1000
 
 
 /**

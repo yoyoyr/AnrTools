@@ -2,17 +2,19 @@
 
 package com.anr.tools.util
 
-import android.bluetooth.BluetoothClass.Device
-import android.os.SystemClock
+import android.os.Debug
 import com.anr.tools.BaseApplication
-import com.anr.tools.BaseApplication.Companion.START_TIME
 import com.anr.tools.bean.MessageBean
+import com.tencent.matrix.AppActiveMatrixDelegate
 import com.tencent.matrix.report.Issue
 import com.tencent.matrix.trace.config.SharePluginInfo
 import com.tencent.matrix.util.DeviceUtil
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.text.SimpleDateFormat
 
 
 /**
@@ -75,6 +77,10 @@ fun AutoCloseable.closeStream() {
     }
 }
 
+fun currentTime() = SimpleDateFormat("MM-dd HH:mm:ss:SSS").format(System.currentTimeMillis())
+
+fun simpleCurrentTime() = SimpleDateFormat("HH:mm:ss:SSS").format(System.currentTimeMillis())
+
 fun Issue.saveFile() {
 
     var fileWriter: FileWriter? = null
@@ -110,7 +116,11 @@ fun Issue.saveFile() {
                 fileWriter.write("触发anr的堆栈  :   $this")
                 fileWriter.write(System.lineSeparator())
             }
-            get(SharePluginInfo.PROCESS_ERROR_STATE_INFO)?.run {
+            get(SharePluginInfo.ANR_SHORT_MSG)?.run {
+                fileWriter.write("$this")
+                fileWriter.write(System.lineSeparator())
+            }
+            get(SharePluginInfo.ANR_LONG_MSG)?.run {
                 fileWriter.write("$this")
                 fileWriter.write(System.lineSeparator())
             }
@@ -126,3 +136,69 @@ fun Issue.saveFile() {
         }
     }
 }
+
+fun MessageBean.saveFile() {
+
+    var fileWriter: FileWriter? = null
+    try {
+        fileWriter = FileWriter("${BaseApplication.cachePath}/warn_message_${currentTime()}.txt")
+        fileWriter.write(JsonUtil.jsonFromObject(this))
+        fileWriter.write(System.lineSeparator())
+        fileWriter.write(System.lineSeparator())
+        fileWriter.write("页面历史 ： ${AppActiveMatrixDelegate.INSTANCE.getVisibleScene()}")
+        fileWriter.write(System.lineSeparator())
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+    } finally {
+        try {
+            fileWriter?.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+}
+
+fun Long.toKB() = this / 1024
+
+fun Long.toMB() =
+    BigDecimal(this.toDouble()).divide(BigDecimal(1024 * 1024), 2, RoundingMode.HALF_UP).toFloat()
+
+
+private val MEM_TOTAL_REGEX = "MemTotal:\\s*(\\d+)\\s*kB".toRegex()
+private val MEM_FREE_REGEX = "MemFree:\\s*(\\d+)\\s*kB".toRegex()
+private val MEM_AVA_REGEX = "MemAvailable:\\s*(\\d+)\\s*kB".toRegex()
+
+
+fun getMemoryInfo(): String {
+    val memInfo = StringBuilder()
+    File("/proc/meminfo").useLines {
+        it.forEach { line ->
+            when {
+                line.startsWith("MemTotal") -> memInfo.append(
+                    "系统总内存 : ${
+                        MEM_TOTAL_REGEX.matchValue(
+                            line
+                        )
+                    }KB, "
+                )
+                line.startsWith("MemAvailable") -> memInfo.append(
+                    "可用内存 : ${
+                        MEM_AVA_REGEX.matchValue(
+                            line
+                        )
+                    }KB, "
+                )
+            }
+        }
+    }
+    memInfo.append(
+        ", java总内存 : ${Runtime.getRuntime().maxMemory().toKB()}KB, java以用内存 : ${
+            (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()).toKB() 
+        }KB."
+    )
+    return memInfo.toString()
+}
+
+private fun Regex.matchValue(s: String) = matchEntire(s.trim())
+    ?.groupValues?.getOrNull(1)?.toLong() ?: 0L

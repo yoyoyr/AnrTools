@@ -14,7 +14,6 @@ Dumping registered class loaders
 #5 dalvik.system.PathClassLoader: [/system/framework/QXPerformance.jar], parent #0
 Done dumping class loaders
 
-############################################################垃圾回收相关信息
 Classes initialized: 0 in 0
 Intern table: 32758 strong; 1180 weak
 JNI: CheckJNI is on; globals=377 (plus 98 weak)
@@ -58,9 +57,6 @@ Sweep:	Sum: 27us Avg: 2.700us
 ResumeOtherThreads:	Sum: 13us Avg: 1.300us
 Done Dumping Averages
 
-
-
-############################################################垃圾回收相关信息
 concurrent copying paused:	Sum: 1.090ms 99% C.I. 69us-144us Avg: 109us Max: 144us
 concurrent copying freed-bytes: Avg: 4217KB Max: 29MB Min: 875KB
 Freed-bytes histogram: 0:8,2560:1,28160:1
@@ -108,8 +104,6 @@ FreeList:	Sum: 55us Avg: 5us
 ResumeOtherThreads:	Sum: 25us Avg: 2.272us
 Done Dumping Averages
 
-
-############################################################垃圾回收相关信息
 young concurrent copying paused:	Sum: 1.872ms 99% C.I. 85us-518us Avg: 170.181us Max: 518us
 young concurrent copying freed-bytes: Avg: 1400KB Max: 4926KB Min: 891KB
 Freed-bytes histogram: 640:9,1920:1,4480:1
@@ -219,11 +213,14 @@ DALVIK THREADS (32):
 
 "main" prio=5 tid=1 Native
   | group="main" sCount=1 ucsCount=0 flags=1 obj=0x726d23d8 self=0xb4000077b013cc00
+  //nice值越低代表线程优先级越高
   | sysTid=10864 nice=-10 cgrp=top-app sched=0/0 handle=0x77b17934f8
+  //当HZ =100时，1utm/stm = 10ms。utm为java层和native非内核态执行逻辑耗时时间。stm位内核态执行时间。
+  //core为cpu核序号，一般大核序号较高
   | state=S schedstat=( 15155462678 535645898 7160 ) utm=1391 stm=124 core=7 HZ=100
   | stack=0x7fd31dd000-0x7fd31df000 stackSize=8188KB
   | held mutexes=
-  //堆栈是在anr之后捕获的，时机不确定，因此此时大概率不是第一现场
+  //堆栈是在anr之后捕获的，因此此时大概率不是第一现场
   native: #00 pc 0000000000086f90  /apex/com.android.runtime/lib64/bionic/libc.so (syscall+32)
   native: #01 pc 000000000028dc74  /apex/com.android.art/lib64/libart.so (art::ConditionVariable::WaitHoldingLocks(art::Thread*)+152)
   native: #02 pc 000000000042fd3c  /apex/com.android.art/lib64/libart.so (art::(anonymous namespace)::CheckJNI::FindClass(_JNIEnv*, char const*) (.llvm.3094671572786334925)+508)

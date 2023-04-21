@@ -5,7 +5,9 @@ import android.content.Context
 import android.os.Environment
 import android.os.SystemClock
 import com.anr.tools.util.LoggerUtils
+import com.anr.tools.util.currentTime
 import com.anr.tools.util.saveFile
+import com.anr.tools.util.simpleCurrentTime
 import com.tencent.matrix.Matrix
 import com.tencent.matrix.plugin.Plugin
 import com.tencent.matrix.plugin.PluginListener
@@ -15,6 +17,7 @@ import com.tencent.matrix.trace.config.SharePluginInfo
 import com.tencent.matrix.trace.config.TraceConfig
 import com.tencent.matrix.trace.constants.Constants
 import com.tencent.matrix.trace.tracer.SignalAnrTracer
+import java.io.File
 
 open class BaseApplication : Application() {
 
@@ -25,10 +28,15 @@ open class BaseApplication : Application() {
 
         val externalStorageAvailable =
             Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
-        val cachePath = if (externalStorageAvailable) {
+        cachePath = if (externalStorageAvailable) {
             context.externalCacheDir?.path ?: context.cacheDir.path
         } else {
             context.cacheDir.path
+        } + "/anr"
+
+        val file = File(cachePath)
+        if (!file.exists()) {
+            file.mkdir()
         }
 
         tracePath = "${cachePath}/trace.txt"
@@ -45,7 +53,7 @@ open class BaseApplication : Application() {
             .enableSignalAnrTrace(true)
             .build()
         SignalAnrTracer.setSigQuitListener {
-            IS_ANR = true
+            MainLooperMonitor.getInstance().onSigQuitCatch()
         }
         val tracePlugin = TracePlugin(config)
 
@@ -90,11 +98,11 @@ open class BaseApplication : Application() {
 
         lateinit var polMessagePath: String
 
+        lateinit var cachePath: String
+
         val START_TIME = SystemClock.elapsedRealtime()
 
         var USE_TIME = -1L
 
-        @Volatile
-        var IS_ANR = false
     }
 }

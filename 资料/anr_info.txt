@@ -5,7 +5,7 @@ cpu情况 : 0.0
 内存情况 : 11777556480
 未使用内存情况 : 3596560
 用户的操作路径  :   com.tools.anrtools.MainActivity
-发生anr的消息  :
+发生anr的消息  :    { when=-4s39ms barrier=256 }
 触发anr的堆栈  :   android.view.Window.isOutOfBounds(Window.java:1458)
 android.view.Window.shouldCloseOnTouch(Window.java:1436)
 android.app.Activity.onTouchEvent(Activity.java:4068)

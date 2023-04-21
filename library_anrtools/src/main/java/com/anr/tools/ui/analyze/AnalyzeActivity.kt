@@ -34,9 +34,14 @@ class AnalyzeActivity : Activity() {
 
         val tvNameMessageQueueDispatchItemInfo =
             findViewById<TextView>(R.id.tvNameMessageQueueDispatchItemInfo)
+        val tvMemory =
+            findViewById<TextView>(R.id.tvMemory)
+        val tvAnrTime =
+            findViewById<TextView>(R.id.tvAnrTime)
         val tvNameMessageQueueInfo = findViewById<TextView>(R.id.tvNameMessageQueueInfo)
         val anrInfo = MSG_INFO
-        analyzeMessageDispatchAdapter.setOnItemClickListener(object : AnalyzeMessageDispatchAdapter.OnItemClickListener {
+        analyzeMessageDispatchAdapter.setOnItemClickListener(object :
+            AnalyzeMessageDispatchAdapter.OnItemClickListener {
 
             override fun onItemClick(messageInfo: MessageListBean?) {
                 tvNameMessageQueueDispatchItemInfo.text = messageInfo.toString()
@@ -46,6 +51,8 @@ class AnalyzeActivity : Activity() {
 
         anrInfo?.run {
             tvNameMessageQueueInfo.text = String(anrInfo.messageQueueSample)
+            tvAnrTime.text = "收到SigQuit时间:${anrInfo.anrTime}"
+            tvMemory.text = "内存信息:${anrInfo.memory}"
             analyzeSchedulingAdapter.scheduledInfos = anrInfo.scheduledSamplerCache.getAll()
             analyzeSchedulingAdapter.notifyDataSetChanged()
             recyclerMainThreadScheduling.scrollToPosition(analyzeSchedulingAdapter.itemCount - 1)

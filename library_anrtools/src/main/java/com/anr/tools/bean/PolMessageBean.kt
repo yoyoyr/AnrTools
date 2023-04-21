@@ -13,6 +13,8 @@ class PolMessageBean : Serializable {
     var scheduledSamplerCache: MessageLruCache<ScheduledBean> = MessageLruCache()
     var messageQueueSample = StringBuilder()
     var markTime: String = ""
+    var anrTime: String = ""
+    var memory: String = ""
 
 
 

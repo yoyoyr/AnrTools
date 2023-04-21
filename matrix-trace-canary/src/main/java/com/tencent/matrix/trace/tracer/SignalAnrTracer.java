@@ -480,9 +480,11 @@ public class SignalAnrTracer extends Tracer {
             jsonObject.put(SharePluginInfo.ISSUE_SCENE, scene);
 
             if (processErrorStateInfo != null) {
-                jsonObject.put(SharePluginInfo.PROCESS_ERROR_STATE_INFO, processErrorStateInfo.longMsg);
+                jsonObject.put(SharePluginInfo.ANR_LONG_MSG, processErrorStateInfo.longMsg);
+                jsonObject.put(SharePluginInfo.ANR_SHORT_MSG, processErrorStateInfo.shortMsg);
             } else {
-                jsonObject.put(SharePluginInfo.PROCESS_ERROR_STATE_INFO, "");
+                jsonObject.put(SharePluginInfo.ANR_LONG_MSG, "");
+                jsonObject.put(SharePluginInfo.ANR_SHORT_MSG, "");
             }
 
             jsonObject.put(SharePluginInfo.ISSUE_PROCESS_FOREGROUND, currentForeground);

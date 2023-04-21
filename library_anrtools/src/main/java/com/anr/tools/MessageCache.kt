@@ -3,8 +3,8 @@ package com.anr.tools
 import com.anr.tools.bean.PolMessageBean
 import com.anr.tools.bean.MessageListBean
 import com.anr.tools.bean.ScheduledBean
-import com.anr.tools.util.LoggerUtils
 import com.anr.tools.util.closeStream
+import com.anr.tools.util.currentTime
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -13,11 +13,9 @@ import java.util.*
 class MessageCache private constructor() {
 
     private var anrInfo = PolMessageBean()
-    private val sFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS")
     private val hFormat = SimpleDateFormat("HH:mm:ss:SSS")
 
     fun onMsgSample(baseTime: Long, msg: MessageListBean) {
-        msg.messageCreateTime = hFormat.format(System.currentTimeMillis())
         anrInfo.messageSamplerCache.put(baseTime, msg)
     }
 
@@ -34,10 +32,12 @@ class MessageCache private constructor() {
     }
 
 
-    fun saveMessage():String {
+    fun saveMessage(anrStr: String, memoryStr: String): String {
         val temp = anrInfo
-        val path = sFormat.format(System.currentTimeMillis())
+        val path = currentTime()
         temp.markTime = path
+        temp.anrTime = anrStr
+        temp.memory = memoryStr
         IO_EXECUTOR.execute {
             cacheData(temp)
         }

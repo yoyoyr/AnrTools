@@ -18,6 +18,28 @@
             android:layout_height="match_parent">
 
             <TextView
+                android:id="@+id/tvAnrTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="@dimen/dp_10"
+                android:layout_marginEnd="16dp"
+                android:text="anr发生事件"
+                android:textSize="16sp"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:id="@+id/tvMemory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="@dimen/dp_10"
+                android:layout_marginEnd="16dp"
+                android:text="内存信息"
+                android:textSize="16sp"
+                app:layout_constraintTop_toBottomOf="@id/tvAnrTime"/>
+
+            <TextView
                 android:id="@+id/tvNameMainThreadScheduling"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -26,7 +48,7 @@
                 android:layout_marginEnd="16dp"
                 android:text="主线程调度能力"
                 android:textSize="16sp"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@id/tvMemory" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerMainThreadScheduling"
@@ -40,6 +62,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvNameMainThreadScheduling" />
+
 
             <TextView
                 android:id="@+id/tvNameMessageQueueDispatch"

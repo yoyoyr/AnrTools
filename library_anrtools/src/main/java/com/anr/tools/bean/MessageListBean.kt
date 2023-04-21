@@ -2,6 +2,8 @@ package com.anr.tools.bean
 
 import android.os.SystemClock
 import androidx.annotation.IntDef
+import com.anr.tools.util.currentTime
+import com.anr.tools.util.simpleCurrentTime
 import java.io.Serializable
 
 //聚合消息类
@@ -35,7 +37,8 @@ class MessageListBean : Serializable {
     /**
      * 消息被创建的时间
      */
-    var messageCreateTime = ""
+    val messageCreateTime: String = simpleCurrentTime()
+    
 
     override fun toString(): String {
         return "\nMessageListBean{\n" +
