@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 project(libenhance_dlsym CXX)
 
-set(enhance_dlsym_source_dir ${CMAKE_CURRENT_SOURCE_DIR})
+set(enhance_dlsym_source_dir .)
 
 set(
   enhance_dlsym_source

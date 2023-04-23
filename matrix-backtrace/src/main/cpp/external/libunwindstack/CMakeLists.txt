@@ -38,25 +38,25 @@ IF(${ANDROID_ABI} STREQUAL x86)
   SET(
           ${TARGET}_SOURCE_FILES
           ${${TARGET}_SOURCE_FILES}
-          ${CMAKE_CURRENT_SOURCE_DIR}/AsmGetRegsX86.S
+          AsmGetRegsX86.S
   )
 ELSEIF(${ANDROID_ABI} STREQUAL x86_64)
   SET(
           ${TARGET}_SOURCE_FILES
           ${${TARGET}_SOURCE_FILES}
-          ${CMAKE_CURRENT_SOURCE_DIR}/AsmGetRegsX86_64.S
+          AsmGetRegsX86_64.S
   )
 ELSEIF(${ANDROID_ABI} STREQUAL mips)
   SET(
           ${TARGET}_SOURCE_FILES
           ${${TARGET}_SOURCE_FILES}
-          ${CMAKE_CURRENT_SOURCE_DIR}/AsmGetRegsMips.S
+          AsmGetRegsMips.S
   )
 ELSEIF(${ANDROID_ABI} STREQUAL mips64)
   SET(
           ${TARGET}_SOURCE_FILES
           ${${TARGET}_SOURCE_FILES}
-          ${CMAKE_CURRENT_SOURCE_DIR}/AsmGetRegsMips64.S
+          AsmGetRegsMips64.S
   )
 ENDIF()
 
@@ -85,8 +85,8 @@ TARGET_COMPILE_OPTIONS(
 TARGET_INCLUDE_DIRECTORIES(
         ${TARGET}
         PRIVATE .
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/deps
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE deps
+        PUBLIC include
 )
 
 FIND_LIBRARY(log-lib log)

@@ -5,7 +5,6 @@ import android.app.ActivityManager
 import android.app.Service
 import android.content.ComponentName
 import android.content.Context
-import android.os.Build
 import android.os.Handler
 import android.os.Message
 import android.os.Process

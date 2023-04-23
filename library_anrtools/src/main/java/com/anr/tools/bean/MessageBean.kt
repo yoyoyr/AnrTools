@@ -22,6 +22,8 @@ class MessageBean : Serializable {
 
     var monitorMsgId: Long = 0
 
+    var stack: String = ""
+
     constructor()
 
     constructor(
@@ -42,6 +44,7 @@ class MessageBean : Serializable {
                 "\n      handlerAddress=${handlerAddress}, " +
                 "\n      callbackName=$callbackName, " +
                 "\n      messageWhat=$messageWhat, monitorMsgId=$monitorMsgId" +
+                "\n      $stack    , " +
                 "\n      }"
     }
 

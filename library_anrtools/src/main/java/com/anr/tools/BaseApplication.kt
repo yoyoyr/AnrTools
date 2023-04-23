@@ -5,9 +5,7 @@ import android.content.Context
 import android.os.Environment
 import android.os.SystemClock
 import com.anr.tools.util.LoggerUtils
-import com.anr.tools.util.currentTime
 import com.anr.tools.util.saveFile
-import com.anr.tools.util.simpleCurrentTime
 import com.tencent.matrix.Matrix
 import com.tencent.matrix.plugin.Plugin
 import com.tencent.matrix.plugin.PluginListener
@@ -26,28 +24,15 @@ open class BaseApplication : Application() {
         super.attachBaseContext(base)
         context = base
 
-        val externalStorageAvailable =
-            Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
-        cachePath = if (externalStorageAvailable) {
-            context.externalCacheDir?.path ?: context.cacheDir.path
-        } else {
-            context.cacheDir.path
-        } + "/anr"
-
-        val file = File(cachePath)
-        if (!file.exists()) {
-            file.mkdir()
-        }
-
-        tracePath = "${cachePath}/trace.txt"
-        anrInfoPath = "${cachePath}/anr_info.txt"
-        polMessagePath = "${cachePath}/pol_message.txt"
+        initCachePath()
     }
 
     override fun onCreate() {
         super.onCreate()
+        initMatrix()
+    }
 
-
+    private fun initMatrix() {
         val config = TraceConfig.Builder()
             .anrTracePath(tracePath)
             .enableSignalAnrTrace(true)
@@ -66,7 +51,27 @@ open class BaseApplication : Application() {
         tracePlugin.start()
     }
 
-    private val pluginListener = object : PluginListener {
+    private fun initCachePath() {
+        val externalStorageAvailable =
+            Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
+        cachePath = if (externalStorageAvailable) {
+            context.externalCacheDir?.path ?: context.cacheDir.path
+        } else {
+            context.cacheDir.path
+        } + "/anr"
+
+        val file = File(cachePath)
+        if (!file.exists()) {
+            file.mkdir()
+        }
+
+        tracePath = "${cachePath}/trace.txt"
+        anrInfoPath = "${cachePath}/anr_info.txt"
+        polMessagePath = "${cachePath}/pol_message.txt"
+    }
+
+    private val pluginListener = object :
+        PluginListener {
         override fun onInit(plugin: Plugin) {}
         override fun onStart(plugin: Plugin) {}
         override fun onStop(plugin: Plugin) {}

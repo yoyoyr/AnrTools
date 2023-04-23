@@ -24,7 +24,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.MessageQueue;
 import android.os.SystemClock;
-import android.util.Pair;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
@@ -59,7 +58,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -96,6 +94,8 @@ public class SignalAnrTracer extends Tracer {
 
     //是否正在处理anr，避免多次回调
     private static volatile boolean isDoingAnr = false;
+
+    private static long catchSignQuitTime = 0L;
 
     public static void setSigQuitListener(ISigQuitListener sigQuitListener) {
         SignalAnrTracer.sigQuitListener = sigQuitListener;
@@ -353,17 +353,17 @@ public class SignalAnrTracer extends Tracer {
             sigQuitListener.onSigQuit();
         }
         //根据疑似anr消息的when字段和当前应用处于前后台情况判断是否发生anr
-//        boolean needReport = isMainThreadBlocked();
+        boolean needReport = isMainThreadBlocked();
 //        if (needReport) {
 //            report(false, isSigQuit);
 //        } else {
         //为了获取到am.getProcessesInErrorState()信息
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-        checkErrorStateCycle(isSigQuit);
-//    }
-//        }, CHECK_ANR_STATE_THREAD_NAME).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                checkErrorStateCycle(isSigQuit);
+            }
+        }, CHECK_ANR_STATE_THREAD_NAME).start();
 //        }
     }
 
@@ -372,6 +372,7 @@ public class SignalAnrTracer extends Tracer {
     private synchronized static void onANRDumped() {
         if (isDoingAnr)
             return;
+        catchSignQuitTime = SystemClock.elapsedRealtime();
         isDoingAnr = true;
         final CountDownLatch anrDumpLatch = new CountDownLatch(1);
         new Thread(new Runnable() {
@@ -496,6 +497,7 @@ public class SignalAnrTracer extends Tracer {
             issue.setTag(SharePluginInfo.TAG_PLUGIN_EVIL_METHOD);
             issue.setContent(jsonObject);
             plugin.onDetectIssue(issue);
+            System.out.println("tessst  am.processInErrorState cost  " + (SystemClock.elapsedRealtime() - catchSignQuitTime));
 //            MatrixLog.e(TAG, "happens real ANR : %s ", jsonObject.toString());
 
         } catch (JSONException e) {

@@ -1,6 +1,5 @@
 package com.anr.tools
 
-import android.os.Debug
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -9,6 +8,9 @@ import android.widget.Toast
 import com.anr.tools.bean.MessageBean
 import com.anr.tools.bean.MessageListBean
 import com.anr.tools.util.*
+import com.tencent.matrix.trace.constants.Constants
+import com.tencent.matrix.trace.util.Utils
+import com.tencent.matrix.util.MatrixHandlerThread
 import java.util.concurrent.atomic.AtomicBoolean
 
 class MainLooperMonitor private constructor() : Printer {
@@ -46,6 +48,10 @@ class MainLooperMonitor private constructor() : Printer {
     //调用println 是奇数次还是偶数  默认false 偶数  true 奇数
     private val printCountFlg = AtomicBoolean(false)
 
+    private val lagHandler = Handler(MatrixHandlerThread.getDefaultHandler().looper)
+
+    private val lagTask = LagHandleTask()
+
     private var checkId: Long = -1
     private val mainHandler = Handler(Looper.getMainLooper())
     private var checkMainRunnable = object : Runnable {
@@ -64,6 +70,7 @@ class MainLooperMonitor private constructor() : Printer {
                 //                sampleListener.onScheduledSample(true, dealtTime,""+checkId,offset );
                 mainHandler.postDelayed(this, warnTime)
             }
+
         }
     }
 
@@ -114,6 +121,7 @@ class MainLooperMonitor private constructor() : Printer {
     }
 
     private fun msgStart(msg: String) {
+        lagHandler.postDelayed(lagTask, WARN_TIME)
         messageStartTime = SystemClock.elapsedRealtime()
         currentMessage = msg.parseLooperStart()
         currentMessage.monitorMsgId = monitorMsgId
@@ -139,6 +147,7 @@ class MainLooperMonitor private constructor() : Printer {
             messageStartTime = polMessageStartTime
             messageCpuStartTime = SystemClock.currentThreadTimeMillis()
         }
+//        LoggerUtils.LOGV("tessst  msg start cost ${SystemClock.elapsedRealtime() - messageStartTime}")
     }
 
     /**
@@ -160,13 +169,13 @@ class MainLooperMonitor private constructor() : Printer {
         ) {
 
             //单条消息处理超过1s，警告
-            if (msgDealtTime > WARN_TIME) {
-                Toast.makeText(BaseApplication.context, "warn_message", Toast.LENGTH_LONG)
-                    .show()
-                IO_EXECUTOR.execute {
-                    currentMessage.saveFile()
-                }
-            }
+//            if (msgDealtTime > WARN_TIME) {
+//                Toast.makeText(BaseApplication.context, "warn_message", Toast.LENGTH_LONG)
+//                    .show()
+//                IO_EXECUTOR.execute {
+//                    currentMessage.saveFile()
+//                }
+//            }
 
 
             messageList?.run {
@@ -210,7 +219,9 @@ class MainLooperMonitor private constructor() : Printer {
         } else {
             monitorMsgId++
         }
+        lagHandler.removeCallbacksAndMessages(null)
 
+//        LoggerUtils.LOGV("tessst  msg end cost ${SystemClock.elapsedRealtime() - lastMessageEndTime}")
     }
 
     //保存msg信息
@@ -240,5 +251,13 @@ class MainLooperMonitor private constructor() : Printer {
         var IS_ANR = false
 
         var ANR_TIME = ""
+    }
+
+    private inner class LagHandleTask : Runnable {
+        override fun run() {
+            val start = SystemClock.elapsedRealtime()
+            currentMessage.stack = Utils.getMainThreadJavaStackTrace()
+            LoggerUtils.LOGV("catch stack ${SystemClock.elapsedRealtime() - start}")
+        }
     }
 }

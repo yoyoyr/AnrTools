@@ -1,6 +1,7 @@
 
 include ':app'
 include ':library_anrtools'
+include ':tools_ui'
 
 
 include ':matrix-android-lib'

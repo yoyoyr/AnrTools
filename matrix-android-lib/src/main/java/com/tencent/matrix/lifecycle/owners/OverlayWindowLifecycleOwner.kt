@@ -28,7 +28,10 @@ object OverlayWindowLifecycleOwner : StatefulOwner() {
 
     private val Field_ViewRootImpl_mView by lazy {
         safeLetOrNull(TAG) {
-            ReflectFiled<View>(Class.forName("android.view.ViewRootImpl"), "mView")
+            ReflectFiled<View>(
+                Class.forName("android.view.ViewRootImpl"),
+                "mView"
+            )
         }
     }
 
@@ -94,7 +97,10 @@ object OverlayWindowLifecycleOwner : StatefulOwner() {
                 "mRoots",
                 WindowManagerGlobal_instance
             )
-            val proxy = ArrayListProxy(origin, onViewRootChangedListener)
+            val proxy = ArrayListProxy(
+                origin,
+                onViewRootChangedListener
+            )
             ReflectUtils.set(
                 Clazz_WindowManagerGlobal,
                 "mRoots",

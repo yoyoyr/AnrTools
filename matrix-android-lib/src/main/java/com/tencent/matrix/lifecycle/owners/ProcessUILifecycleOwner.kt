@@ -10,7 +10,6 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Process
 import android.text.TextUtils
 import androidx.lifecycle.*
 import com.tencent.matrix.lifecycle.*

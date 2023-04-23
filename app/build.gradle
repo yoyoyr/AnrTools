@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 33
@@ -43,5 +42,6 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     implementation project(path: ':library_anrtools')
+    implementation project(':matrix-trace-canary')
     implementation 'com.github.getActivity:XXPermissions:18.0'
 }

@@ -13,6 +13,7 @@ import com.anr.tools.util.toMB
 import com.hjq.permissions.OnPermissionCallback
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
+import com.tencent.matrix.trace.util.Utils
 
 class MainActivity : AppCompatActivity() {
 
@@ -55,8 +56,7 @@ class MainActivity : AppCompatActivity() {
             })
 
         findViewById<Button>(R.id.bigAnr).setOnClickListener {
-            activity.startService(Intent(activity, SecondService::class.java))
-            LoggerUtils.LOGV("start service...")
+
             mainHandler.post(Runnable {
                 SystemClock.sleep(10000)
                 LoggerUtils.LOGV("send message...")
@@ -87,14 +87,15 @@ class MainActivity : AppCompatActivity() {
                         SystemClock.sleep(50)
                         LoggerUtils.LOGV("send message...")
                     }
-
                 })
             }
         }
 
         findViewById<Button>(R.id.activity).setOnClickListener {
-
-            LoggerUtils.LOGV(getMemoryInfo())
+//            MainLooperMonitor.getInstance().saveMessage()
+            val start = SystemClock.elapsedRealtime()
+            val str = Utils.getMainThreadJavaStackTrace()
+            LoggerUtils.LOGV("catch stack ${SystemClock.elapsedRealtime() - start}")
             //            mainHandler.postDelayed(kotlinx.coroutines.Runnable {
 //                activity.startActivity(Intent(activity, SecondActivity::class.java))
 //            }, 500)

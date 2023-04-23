@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 project(libxhook C)
 
-set(xhook_source_dir ${CMAKE_CURRENT_SOURCE_DIR})
+set(xhook_source_dir .)
 
 set(
   xhook_source

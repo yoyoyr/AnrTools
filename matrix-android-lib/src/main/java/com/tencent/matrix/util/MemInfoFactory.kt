@@ -49,7 +49,8 @@ object MemInfoFactory {
 
 data class ProcessInfo(
     val pid: Int = Process.myPid(),
-    val name: String = MatrixUtil.getProcessName(Matrix.with().application),
+    val name: String = MatrixUtil.getProcessName(
+        Matrix.with().application),
     val activity: String = ProcessUILifecycleOwner.recentScene.substringAfterLast('.'),
     val isProcessFg: Boolean = ProcessUIStartedStateOwner.active(),
     val isAppFg: Boolean = ProcessSupervisor.isAppUIForeground

@@ -2,7 +2,8 @@
 
 package com.anr.tools.util
 
-import android.os.Debug
+import android.content.Context.BATTERY_SERVICE
+import android.os.BatteryManager
 import com.anr.tools.BaseApplication
 import com.anr.tools.bean.MessageBean
 import com.tencent.matrix.AppActiveMatrixDelegate
@@ -99,9 +100,14 @@ fun Issue.saveFile() {
                 fileWriter.write("机器等级 : $this")
                 fileWriter.write(System.lineSeparator())
             }
-            fileWriter.write("java内存使用情况 : ${DeviceUtil.getDalvikHeap()}")
-            fileWriter.write(System.lineSeparator())
-            fileWriter.write("native内存使用情况 : ${DeviceUtil.getDalvikHeap()}")
+
+            (BaseApplication.context.getSystemService(BATTERY_SERVICE) as BatteryManager)?.run {
+                val batteryLevel = getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+                fileWriter.write("电池电量 : $batteryLevel")
+                fileWriter.write(System.lineSeparator())
+            }
+
+            fileWriter.write("内存使用情况 : ${getMemoryInfo()}")
             fileWriter.write(System.lineSeparator())
             get(SharePluginInfo.ISSUE_SCENE)?.run {
                 fileWriter.write("用户的操作路径  :   $this")

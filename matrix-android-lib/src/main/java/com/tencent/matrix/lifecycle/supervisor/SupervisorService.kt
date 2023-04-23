@@ -7,7 +7,6 @@ import android.os.*
 import com.tencent.matrix.lifecycle.MatrixLifecycleThread
 import com.tencent.matrix.lifecycle.StatefulOwner
 import com.tencent.matrix.util.*
-import junit.framework.Assert
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
