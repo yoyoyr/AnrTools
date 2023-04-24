@@ -63,6 +63,14 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
+        findViewById<Button>(R.id.anrMsg).setOnClickListener {
+
+            mainHandler.post(Runnable {
+                SystemClock.sleep(50000)
+                LoggerUtils.LOGV("send message...")
+            })
+        }
+
         findViewById<Button>(R.id.manyAnr).setOnClickListener {
 //            activity.startService(Intent(activity, SecondService::class.java))
 //            LoggerUtils.LOGV("start service...")

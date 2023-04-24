@@ -47,8 +47,10 @@ class MessageCache private constructor() {
 
 
     private fun cacheData(polMessageBean: PolMessageBean) {
+
         //如果文件不存在就创建文件
-        val file = File(BaseApplication.polMessagePath)
+
+        val file = File("${BaseApplication.listMessagePath}message_list_${polMessageBean.markTime}.txt")
         if (!file.exists()) {
             file.createNewFile()
         }
@@ -67,27 +69,30 @@ class MessageCache private constructor() {
 
     fun restoreData(): List<PolMessageBean> {
         val result: MutableList<PolMessageBean> = ArrayList()
-        val file = File(BaseApplication.polMessagePath)
-        var ois: ObjectInputStream? = null
-        try {
-            //获取输入流
-            ois = ObjectInputStream(FileInputStream(file))
-            ois.run {
-                readObject().run {
-                    if (this is PolMessageBean) {
-                        result.add(this)
+        val files = File(BaseApplication.listMessagePath)
+        files.listFiles().forEach { file ->
+            var ois: ObjectInputStream? = null
+            try {
+                //获取输入流
+                ois = ObjectInputStream(FileInputStream(file))
+                ois.run {
+                    readObject().run {
+                        if (this is PolMessageBean) {
+                            result.add(this)
+                        }
                     }
                 }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            try {
-                ois?.close()
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                try {
+                    ois?.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
             }
         }
+
         return result
     }
 

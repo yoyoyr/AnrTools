@@ -354,17 +354,17 @@ public class SignalAnrTracer extends Tracer {
         }
         //根据疑似anr消息的when字段和当前应用处于前后台情况判断是否发生anr
         boolean needReport = isMainThreadBlocked();
-//        if (needReport) {
-//            report(false, isSigQuit);
-//        } else {
-        //为了获取到am.getProcessesInErrorState()信息
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                checkErrorStateCycle(isSigQuit);
-            }
-        }, CHECK_ANR_STATE_THREAD_NAME).start();
-//        }
+        if (needReport) {
+            report(false, isSigQuit);
+        } else {
+            //为了获取到am.getProcessesInErrorState()信息
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    checkErrorStateCycle(isSigQuit);
+                }
+            }, CHECK_ANR_STATE_THREAD_NAME).start();
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

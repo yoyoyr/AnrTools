@@ -10,6 +10,7 @@ const val MESSAGE_CACHE_TIME = 3 * 60 * 1000L
 //当某条消息处理时间超过WARN_TIME时，弹窗提示耗时且记录消息
 const val WARN_TIME = 1000L
 
+const val WARN_ENABLE= true
 
 /**
  * 超过这个时间输出警告 超过这个时间消息单独列出来

@@ -18,9 +18,6 @@ class MainLooperMonitor private constructor() : Printer {
     @Volatile
     private var start = false
 
-    @Volatile
-    private var isSaveMessage = false
-
     //每一帧的时间
     private val noInit = -1L
 
@@ -112,7 +109,19 @@ class MainLooperMonitor private constructor() : Printer {
 
     //将限定时间段的消息保存到文件中
     fun saveMessage() {
-        isSaveMessage = true
+        if (IS_ANR) {//如果因为anr耗时，到这一步还没保存消息
+            messageList = MessageListBean().apply {
+                wallTime = SystemClock.elapsedRealtime() - messageStartTime
+                cpuTime = SystemClock.currentThreadTimeMillis() - messageCpuStartTime
+                boxMessages.add(currentMessage)
+                msgType = MessageListBean.MSG_TYPE_ANR
+            }
+            handleMsg()
+        }
+
+        //获取当前消息队列的情况
+        Looper.getMainLooper().dump(MessageQueuePrint(), "\n        ")
+        MessageCache.getInstance().saveMessage(ANR_TIME, getMemoryInfo())
     }
 
     fun onSigQuitCatch() {
@@ -169,13 +178,14 @@ class MainLooperMonitor private constructor() : Printer {
         ) {
 
             //单条消息处理超过1s，警告
-//            if (msgDealtTime > WARN_TIME) {
-//                Toast.makeText(BaseApplication.context, "warn_message", Toast.LENGTH_LONG)
-//                    .show()
-//                IO_EXECUTOR.execute {
-//                    currentMessage.saveFile()
-//                }
-//            }
+            if (msgDealtTime > WARN_TIME && WARN_ENABLE) {
+                Toast.makeText(BaseApplication.context, "warn_message", Toast.LENGTH_LONG)
+                    .show()
+                currentMessage.stack = Utils.getMainThreadJavaStackTrace()
+                IO_EXECUTOR.execute {
+                    currentMessage.saveFile()
+                }
+            }
 
 
             messageList?.run {
@@ -233,12 +243,6 @@ class MainLooperMonitor private constructor() : Printer {
             )
             messageList = null
         }
-        if (isSaveMessage) {
-            //获取当前消息队列的情况
-            Looper.getMainLooper().dump(MessageQueuePrint(), "\n        ")
-            MessageCache.getInstance().saveMessage(ANR_TIME, getMemoryInfo())
-            isSaveMessage = false
-        }
     }
 
 
@@ -255,9 +259,7 @@ class MainLooperMonitor private constructor() : Printer {
 
     private inner class LagHandleTask : Runnable {
         override fun run() {
-            val start = SystemClock.elapsedRealtime()
             currentMessage.stack = Utils.getMainThreadJavaStackTrace()
-            LoggerUtils.LOGV("catch stack ${SystemClock.elapsedRealtime() - start}")
         }
     }
 }

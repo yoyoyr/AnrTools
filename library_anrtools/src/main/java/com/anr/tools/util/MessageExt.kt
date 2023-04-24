@@ -147,8 +147,9 @@ fun MessageBean.saveFile() {
 
     var fileWriter: FileWriter? = null
     try {
-        fileWriter = FileWriter("${BaseApplication.cachePath}/warn_message_${currentTime()}.txt")
-        fileWriter.write(JsonUtil.jsonFromObject(this))
+
+        fileWriter = FileWriter("${BaseApplication.warnMessagePath}warn_message_${currentTime()}.txt")
+        fileWriter.write(toString())
         fileWriter.write(System.lineSeparator())
         fileWriter.write(System.lineSeparator())
         fileWriter.write("页面历史 ： ${AppActiveMatrixDelegate.INSTANCE.getVisibleScene()}")
@@ -200,7 +201,7 @@ fun getMemoryInfo(): String {
     }
     memInfo.append(
         ", java总内存 : ${Runtime.getRuntime().maxMemory().toKB()}KB, java以用内存 : ${
-            (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()).toKB() 
+            (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()).toKB()
         }KB."
     )
     return memInfo.toString()

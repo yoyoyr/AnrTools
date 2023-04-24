@@ -67,7 +67,17 @@ open class BaseApplication : Application() {
 
         tracePath = "${cachePath}/trace.txt"
         anrInfoPath = "${cachePath}/anr_info.txt"
-        polMessagePath = "${cachePath}/pol_message.txt"
+        listMessagePath = "${cachePath}/list_message/"
+        val listMessage = File(listMessagePath)
+        if (!listMessage.exists()) {
+            listMessage.mkdir()
+        }
+
+        warnMessagePath = "${cachePath}/warn_message/"
+        val warnMessage = File(warnMessagePath)
+        if (!warnMessage.exists()) {
+            warnMessage.mkdir()
+        }
     }
 
     private val pluginListener = object :
@@ -86,7 +96,7 @@ open class BaseApplication : Application() {
                 USE_TIME = (SystemClock.elapsedRealtime() - START_TIME) / 1000
                 issue.saveFile()
                 MainLooperMonitor.getInstance().saveMessage()
-                LoggerUtils.LOGV("消息队列信息 : $polMessagePath")
+                LoggerUtils.LOGV("消息队列信息 : $listMessagePath")
                 LoggerUtils.LOGV("trace文件 : $tracePath")
                 LoggerUtils.LOGV("anr_info文件 : $anrInfoPath")
             }
@@ -101,7 +111,9 @@ open class BaseApplication : Application() {
 
         lateinit var anrInfoPath: String
 
-        lateinit var polMessagePath: String
+        lateinit var listMessagePath: String
+
+        lateinit var warnMessagePath: String
 
         lateinit var cachePath: String
 
